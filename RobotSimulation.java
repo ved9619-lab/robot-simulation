@@ -115,7 +115,12 @@ public class RobotSimulation extends Application {
         addObstacleButton.setOnAction(e -> addNonOverlappingItem(
                 new Obstacle(0, 0, 30), canvasWidth, canvasHeight));
 
-        toolbar.getChildren().addAll(startButton, pauseButton, addRobotButton, addObstacleButton);
+        // Add Predator button
+        Button addPredatorButton = new Button("Add Predator");
+        addPredatorButton.setOnAction(e -> addNonOverlappingItem(
+                new PredatorRobot(0, 0, 20, Math.random() * 2 * Math.PI, 2), canvasWidth, canvasHeight));
+
+        toolbar.getChildren().addAll(startButton, pauseButton, addRobotButton, addObstacleButton, addPredatorButton);
         return toolbar;
     }
 
@@ -145,6 +150,7 @@ public class RobotSimulation extends Application {
         addNonOverlappingItem(new WhiskerRobot(100, 100, 20, Math.PI / 4, 2, 50), 800, 600);
         addNonOverlappingItem(new WhiskerRobot(200, 200, 20, Math.PI / 3, 1.5, 50), 800, 600);
         addNonOverlappingItem(new Obstacle(400, 300, 30), 800, 600);
+        addNonOverlappingItem(new PredatorRobot(300, 300, 20, Math.PI / 4, 2), 800, 600);
     }
 
     private boolean loadDefaultConfiguration() {
@@ -211,6 +217,8 @@ public class RobotSimulation extends Application {
                 arena.addItem(new WhiskerRobot(x, y, radius, Math.PI / 4, 2, 50));
             } else if (type.equals("Obstacle")) {
                 arena.addItem(new Obstacle(x, y, radius));
+            } else if (type.equals("PredatorRobot")) {
+                arena.addItem(new PredatorRobot(x, y, radius, Math.PI / 4, 2));
             }
         }
     }

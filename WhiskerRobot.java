@@ -4,7 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 /**
- * A robot with visible whisker sensors.
+ * A robot with visible whisker sensors and wheels.
  */
 public class WhiskerRobot extends Robot {
     private double whiskerLength;
@@ -16,9 +16,10 @@ public class WhiskerRobot extends Robot {
 
     @Override
     public void draw(GraphicsContext gc) {
-        gc.setFill(Color.GREEN);
-        gc.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+        // Draw robot body and wheels using the parent method
+        super.draw(gc);
 
+        // Draw whiskers
         gc.setStroke(Color.RED);
         double whiskerAngle = Math.PI / 8;
         gc.strokeLine(x, y, x + whiskerLength * Math.cos(angle - whiskerAngle),

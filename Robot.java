@@ -4,7 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 /**
- * Abstract base class for all robot types.
+ * Abstract base class for all robot types with wheels.
  */
 public abstract class Robot extends ArenaItem {
     protected double angle; // Movement direction in radians
@@ -48,7 +48,23 @@ public abstract class Robot extends ArenaItem {
 
     @Override
     public void draw(GraphicsContext gc) {
+        // Draw robot body
         gc.setFill(Color.BLUE);
         gc.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+
+        // Draw wheels
+        double wheelRadius = radius / 4;
+        double wheelOffset = radius * 0.8;
+
+        // Left wheel
+        gc.setFill(Color.BLACK);
+        gc.fillOval(x - wheelOffset * Math.cos(angle + Math.PI / 2) - wheelRadius,
+                y - wheelOffset * Math.sin(angle + Math.PI / 2) - wheelRadius,
+                wheelRadius * 2, wheelRadius * 2);
+
+        // Right wheel
+        gc.fillOval(x - wheelOffset * Math.cos(angle - Math.PI / 2) - wheelRadius,
+                y - wheelOffset * Math.sin(angle - Math.PI / 2) - wheelRadius,
+                wheelRadius * 2, wheelRadius * 2);
     }
 }
