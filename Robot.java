@@ -25,34 +25,40 @@ public abstract class Robot extends ArenaItem {
     }
 
     /**
-     * Handles collisions with arena walls and other objects.
+     * Handles collisions with arena boundaries.
      *
-     * @param arena The RobotArena for collision detection.
+     * @param arena The RobotArena for boundary detection.
      */
-    protected void handleCollisions(RobotArena arena) {
-        // Detect and handle collisions with walls
-        if (x - radius <= 0 || x + radius >= arena.getWidth()) {
-            angle = Math.PI - angle; // Reverse direction horizontally
-            x = Math.max(radius, Math.min(x, arena.getWidth() - radius)); // Keep robot within bounds
+    protected void stayInArenaBounds(RobotArena arena) {
+        if (x - radius < 0 || x + radius > arena.getWidth()) {
+            angle = Math.PI - angle;
         }
-        if (y - radius <= 0 || y + radius >= arena.getHeight()) {
-            angle = -angle; // Reverse direction vertically
-            y = Math.max(radius, Math.min(y, arena.getHeight() - radius)); // Keep robot within bounds
+        if (y - radius < 0 || y + radius > arena.getHeight()) {
+            angle = -angle;
         }
+    }
 
-        // Handle collisions with other items
+    /**
+     * Avoids nearby obstacles by changing direction when close to an obstacle.
+     *
+     * @param arena The RobotArena for obstacle detection.
+     */
+    protected void avoidObstacles(RobotArena arena) {
         for (ArenaItem item : arena.getItems()) {
-            if (item != this && this.overlaps(item)) {
-                angle += Math.PI / 2; // Change direction on collision
+            if (item instanceof Obstacle) {
+                double dx = item.x - this.x;
+                double dy = item.y - this.y;
+                double distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < this.radius + item.radius + 10) { // If close to an obstacle
+                    angle += Math.PI / 2; // Turn 90 degrees to avoid the obstacle
+                }
             }
         }
     }
 
     @Override
-    public void update(RobotArena arena) {
-        move();
-        handleCollisions(arena);
-    }
+    public abstract void update(RobotArena arena);
 
     @Override
     public void draw(GraphicsContext gc) {
@@ -64,12 +70,11 @@ public abstract class Robot extends ArenaItem {
         double wheelRadius = radius / 4;
         double wheelOffset = radius * 0.8;
 
-        // Left wheel
         gc.setFill(Color.BLACK);
+        // Left wheel
         gc.fillOval(x - wheelOffset * Math.cos(angle + Math.PI / 2) - wheelRadius,
                 y - wheelOffset * Math.sin(angle + Math.PI / 2) - wheelRadius,
                 wheelRadius * 2, wheelRadius * 2);
-
         // Right wheel
         gc.fillOval(x - wheelOffset * Math.cos(angle - Math.PI / 2) - wheelRadius,
                 y - wheelOffset * Math.sin(angle - Math.PI / 2) - wheelRadius,
