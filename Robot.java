@@ -25,14 +25,22 @@ public abstract class Robot extends ArenaItem {
     }
 
     /**
-     * Handles collisions with arena boundaries and other objects.
+     * Handles collisions with arena walls and other objects.
      *
      * @param arena The RobotArena for collision detection.
      */
     protected void handleCollisions(RobotArena arena) {
-        if (x - radius < 0 || x + radius > arena.getWidth()) angle = Math.PI - angle;
-        if (y - radius < 0 || y + radius > arena.getHeight()) angle = -angle;
+        // Detect and handle collisions with walls
+        if (x - radius <= 0 || x + radius >= arena.getWidth()) {
+            angle = Math.PI - angle; // Reverse direction horizontally
+            x = Math.max(radius, Math.min(x, arena.getWidth() - radius)); // Keep robot within bounds
+        }
+        if (y - radius <= 0 || y + radius >= arena.getHeight()) {
+            angle = -angle; // Reverse direction vertically
+            y = Math.max(radius, Math.min(y, arena.getHeight() - radius)); // Keep robot within bounds
+        }
 
+        // Handle collisions with other items
         for (ArenaItem item : arena.getItems()) {
             if (item != this && this.overlaps(item)) {
                 angle += Math.PI / 2; // Change direction on collision

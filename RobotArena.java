@@ -1,7 +1,14 @@
 package com.example.robotgui;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
+import javafx.util.Duration;
+
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Manages all objects in the arena.
@@ -9,11 +16,13 @@ import java.util.ArrayList;
 public class RobotArena {
     private ArrayList<ArenaItem> items;
     private double width, height;
+    private Set<Food> targetedFood; // New set to track targeted food
 
     public RobotArena(double width, double height) {
         this.width = width;
         this.height = height;
         items = new ArrayList<>();
+        targetedFood = new HashSet<>();
     }
 
     /**
@@ -32,6 +41,7 @@ public class RobotArena {
      */
     public void removeItem(ArenaItem item) {
         items.remove(item);
+        targetedFood.remove(item); // Remove from targeted food if necessary
     }
 
     /**
@@ -41,6 +51,49 @@ public class RobotArena {
      */
     public ArrayList<ArenaItem> getItems() {
         return items;
+    }
+
+    /**
+     * Returns the width of the arena.
+     *
+     * @return The width of the arena.
+     */
+    public double getWidth() {
+        return width;
+    }
+
+    /**
+     * Returns the height of the arena.
+     *
+     * @return The height of the arena.
+     */
+    public double getHeight() {
+        return height;
+    }
+
+    /**
+     * Returns the set of currently targeted food.
+     *
+     * @return Set of Food items currently being targeted.
+     */
+    public Set<Food> getTargetedFood() {
+        return targetedFood;
+    }
+
+    /**
+     * Clears the set of targeted food.
+     */
+    public void clearTargetedFood() {
+        targetedFood.clear();
+    }
+
+    /**
+     * Periodically clears the set of targeted food.
+     */
+    public void periodicFoodReset() {
+        Timeline resetTimer = new Timeline(new KeyFrame(Duration.seconds(10), e -> clearTargetedFood()));
+        resetTimer.setCycleCount(Timeline.INDEFINITE);
+        resetTimer.play();
     }
 
     /**
@@ -64,20 +117,21 @@ public class RobotArena {
     }
 
     /**
-     * Returns the width of the arena.
+     * Draws walls (borders) around the arena.
      *
-     * @return The width of the arena.
+     * @param gc The GraphicsContext used for drawing.
      */
-    public double getWidth() {
-        return width;
-    }
+    public void drawWalls(GraphicsContext gc) {
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(3);
 
-    /**
-     * Returns the height of the arena.
-     *
-     * @return The height of the arena.
-     */
-    public double getHeight() {
-        return height;
+        // Draw top border
+        gc.strokeLine(0, 0, width, 0);
+        // Draw right border
+        gc.strokeLine(width, 0, width, height);
+        // Draw bottom border
+        gc.strokeLine(0, height, width, height);
+        // Draw left border
+        gc.strokeLine(0, 0, 0, height);
     }
 }

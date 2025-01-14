@@ -1,31 +1,38 @@
 package com.example.robotgui;
 
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
+import javafx.util.Duration;
+import javafx.scene.control.Button;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
-/**
- * Main simulation application with non-overlapping object placement.
- */
 public class RobotSimulation extends Application {
     private RobotArena arena;
     private AnimationTimer animationTimer;
+    private Timeline foodSpawner;
+    private boolean isFoodSpawning = false; // Flag to control food spawning
+    private ArenaItem selectedRobot;
+    private Text selectedRobotInfo;
+
+    private static final int MAX_FOOD_ITEMS = 10; // Maximum number of food items allowed in the arena
 
     @Override
     public void start(Stage primaryStage) {
@@ -41,8 +48,12 @@ public class RobotSimulation extends Application {
         root.setCenter(canvas);
 
         // Toolbar
-        HBox toolbar = createToolbar(canvas.getWidth(), canvas.getHeight());
+        HBox toolbar = createToolbar(canvas.getWidth(), canvas.getHeight(), canvas);
         root.setBottom(toolbar);
+
+        // Info section for selected robot
+        selectedRobotInfo = new Text("Selected Robot: None");
+        root.setRight(selectedRobotInfo);
 
         // Initialize arena
         arena = new RobotArena(canvas.getWidth(), canvas.getHeight());
@@ -55,10 +66,17 @@ public class RobotSimulation extends Application {
             @Override
             public void handle(long now) {
                 gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+                arena.drawWalls(gc); // Draw walls first
                 arena.update();
                 arena.draw(gc);
+                drawSelectedRobotHighlight(gc);
+                updateSelectedRobotInfo(); // Update live location of the selected robot
             }
         };
+
+        // Initialize food spawner timeline (disabled by default)
+        foodSpawner = new Timeline(new KeyFrame(Duration.seconds(5), e -> spawnFood()));
+        foodSpawner.setCycleCount(Timeline.INDEFINITE);
 
         primaryStage.setScene(new Scene(root));
         primaryStage.setTitle("Robot Simulation");
@@ -79,22 +97,28 @@ public class RobotSimulation extends Application {
 
         fileMenu.getItems().addAll(saveItem, loadItem);
 
-        // Simulation Menu
-        Menu simulationMenu = new Menu("Simulation");
+        // Food Menu (acts as a toggle button)
+        Menu foodMenu = new Menu("Food");
 
-        MenuItem startItem = new MenuItem("Start");
-        startItem.setOnAction(e -> animationTimer.start());
+        MenuItem toggleFoodItem = new MenuItem("Enable Food Spawning");
+        toggleFoodItem.setOnAction(e -> toggleFoodSpawning(toggleFoodItem));
 
-        MenuItem pauseItem = new MenuItem("Pause");
-        pauseItem.setOnAction(e -> animationTimer.stop());
+        foodMenu.getItems().add(toggleFoodItem);
 
-        simulationMenu.getItems().addAll(startItem, pauseItem);
+        // Help Menu
+        Menu helpMenu = new Menu("Help");
 
-        menuBar.getMenus().addAll(fileMenu, simulationMenu);
+        MenuItem helpItem = new MenuItem("Show Help");
+        helpItem.setOnAction(e -> showHelp());
+
+        helpMenu.getItems().add(helpItem);
+
+        // Add menus to the menu bar
+        menuBar.getMenus().addAll(fileMenu, foodMenu, helpMenu);
         return menuBar;
     }
 
-    private HBox createToolbar(double canvasWidth, double canvasHeight) {
+    private HBox createToolbar(double canvasWidth, double canvasHeight, Canvas canvas) {
         HBox toolbar = new HBox(10);
 
         // Start button
@@ -118,18 +142,123 @@ public class RobotSimulation extends Application {
         // Add Predator button
         Button addPredatorButton = new Button("Add Predator");
         addPredatorButton.setOnAction(e -> addNonOverlappingItem(
-                new PredatorRobot(0, 0, 20, Math.random() * 2 * Math.PI, 2), canvasWidth, canvasHeight));
+                new PredatorRobot(0, 0, 20, Math.random() * 2 * Math.PI, 1.2), canvasWidth, canvasHeight));
 
-        toolbar.getChildren().addAll(startButton, pauseButton, addRobotButton, addObstacleButton, addPredatorButton);
+        // Select Robot button
+        Button selectRobotButton = new Button("Select Robot");
+        selectRobotButton.setOnAction(e -> enableRobotSelection(canvas));
+
+        // Delete Selected Robot button
+        Button deleteRobotButton = new Button("Delete Selected Robot");
+        deleteRobotButton.setOnAction(e -> deleteSelectedRobot());
+
+        toolbar.getChildren().addAll(startButton, pauseButton, addRobotButton, addObstacleButton, addPredatorButton,
+                selectRobotButton, deleteRobotButton);
         return toolbar;
+    }
+
+    private void enableRobotSelection(Canvas canvas) {
+        canvas.setOnMouseClicked(event -> {
+            double mouseX = event.getX();
+            double mouseY = event.getY();
+
+            // Find the robot closest to the click position
+            selectedRobot = null;
+            double minDistance = Double.MAX_VALUE;
+
+            for (ArenaItem item : arena.getItems()) {
+                double distance = Math.sqrt(Math.pow(item.x - mouseX, 2) + Math.pow(item.y - mouseY, 2));
+                if (distance < item.radius && distance < minDistance) {
+                    selectedRobot = item;
+                    minDistance = distance;
+                }
+            }
+
+            // Update selected robot info
+            updateSelectedRobotInfo();
+        });
+    }
+
+    private void drawSelectedRobotHighlight(GraphicsContext gc) {
+        if (selectedRobot != null) {
+            gc.setStroke(Color.YELLOW);
+            gc.setLineWidth(2);
+            gc.strokeOval(selectedRobot.x - selectedRobot.radius, selectedRobot.y - selectedRobot.radius,
+                    selectedRobot.radius * 2, selectedRobot.radius * 2);
+        }
+    }
+
+    private void updateSelectedRobotInfo() {
+        if (selectedRobot != null) {
+            selectedRobotInfo.setText(String.format("Selected Robot: %s\nPosition: (%.2f, %.2f)\nRadius: %.2f",
+                    selectedRobot.getClass().getSimpleName(), selectedRobot.x, selectedRobot.y, selectedRobot.radius));
+        } else {
+            selectedRobotInfo.setText("Selected Robot: None");
+        }
+    }
+
+    private void deleteSelectedRobot() {
+        if (selectedRobot != null) {
+            arena.removeItem(selectedRobot);
+            selectedRobot = null;
+            updateSelectedRobotInfo(); // Update the display after deletion
+        }
+    }
+
+    private void spawnFood() {
+        // Count current food items
+        long currentFoodCount = arena.getItems().stream().filter(item -> item instanceof Food).count();
+
+        if (currentFoodCount < MAX_FOOD_ITEMS) {
+            // Add a new food item at a random position
+            addNonOverlappingItem(new Food(0, 0, 10), arena.getWidth(), arena.getHeight());
+        }
+    }
+
+    private void toggleFoodSpawning(MenuItem toggleFoodItem) {
+        if (isFoodSpawning) {
+            foodSpawner.stop();
+            isFoodSpawning = false;
+            toggleFoodItem.setText("Enable Food Spawning");
+        } else {
+            foodSpawner.play();
+            isFoodSpawning = true;
+            toggleFoodItem.setText("Disable Food Spawning");
+        }
+    }
+
+    private void showHelp() {
+        Alert helpAlert = new Alert(Alert.AlertType.INFORMATION);
+        helpAlert.setTitle("Help - Robot Simulation");
+        helpAlert.setHeaderText("Instructions");
+        helpAlert.setContentText(
+                "Welcome to the Robot Simulation!\n\n" +
+                        "Here are the controls:\n" +
+                        "- Start: Starts the simulation.\n" +
+                        "- Pause: Pauses the simulation.\n" +
+                        "- Add Robot: Adds a prey bot to the arena.\n" +
+                        "- Add Obstacle: Adds an obstacle to the arena.\n" +
+                        "- Add Predator: Adds a predator bot to the arena.\n" +
+                        "- Select Robot: Allows you to select a robot by clicking on it.\n" +
+                        "- Delete Selected Robot: Deletes the currently selected robot.\n" +
+                        "- Toggle Food Spawning: Starts or stops food spawning.\n\n" +
+                        "Objective:\n" +
+                        "- Prey bots chase food and avoid obstacles.\n" +
+                        "- Predator bots chase prey bots and avoid obstacles.\n" +
+                        "- Food spawns periodically, and prey bots absorb it to increase speed.\n\n" +
+                        "Enjoy the simulation!"
+        );
+        helpAlert.showAndWait();
     }
 
     private void addNonOverlappingItem(ArenaItem item, double canvasWidth, double canvasHeight) {
         boolean overlapping;
         do {
             overlapping = false;
-            item.x = Math.random() * canvasWidth;
-            item.y = Math.random() * canvasHeight;
+
+            // Ensure items are placed within safe boundaries (at least radius distance from borders)
+            item.x = item.radius + Math.random() * (canvasWidth - 2 * item.radius);
+            item.y = item.radius + Math.random() * (canvasHeight - 2 * item.radius);
 
             for (ArenaItem other : arena.getItems()) {
                 double dx = item.x - other.x;
@@ -147,10 +276,10 @@ public class RobotSimulation extends Application {
     }
 
     private void setupDefaultArena() {
+        // Add only normal robots and obstacles initially, with increased speed for normal robots
         addNonOverlappingItem(new WhiskerRobot(100, 100, 20, Math.PI / 4, 2, 50), 800, 600);
-        addNonOverlappingItem(new WhiskerRobot(200, 200, 20, Math.PI / 3, 1.5, 50), 800, 600);
+        addNonOverlappingItem(new WhiskerRobot(200, 200, 20, Math.PI / 3, 1.8, 50), 800, 600);
         addNonOverlappingItem(new Obstacle(400, 300, 30), 800, 600);
-        addNonOverlappingItem(new PredatorRobot(300, 300, 20, Math.PI / 4, 2), 800, 600);
     }
 
     private boolean loadDefaultConfiguration() {
@@ -218,7 +347,9 @@ public class RobotSimulation extends Application {
             } else if (type.equals("Obstacle")) {
                 arena.addItem(new Obstacle(x, y, radius));
             } else if (type.equals("PredatorRobot")) {
-                arena.addItem(new PredatorRobot(x, y, radius, Math.PI / 4, 2));
+                arena.addItem(new PredatorRobot(x, y, radius, Math.PI / 4, 1.2));
+            } else if (type.equals("Food")) {
+                arena.addItem(new Food(x, y, radius));
             }
         }
     }
