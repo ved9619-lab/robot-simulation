@@ -146,7 +146,10 @@ public class RobotSimulation extends Application {
 
         // Select Robot button
         Button selectRobotButton = new Button("Select Robot");
-        selectRobotButton.setOnAction(e -> enableRobotSelection(canvas));
+        selectRobotButton.setOnAction(e -> {
+            enableRobotSelection(canvas);
+            enableRobotMovement(canvas); // Enable robot movement after selection
+        });
 
         // Delete Selected Robot button
         Button deleteRobotButton = new Button("Delete Selected Robot");
@@ -176,6 +179,37 @@ public class RobotSimulation extends Application {
 
             // Update selected robot info
             updateSelectedRobotInfo();
+        });
+    }
+
+    private void enableRobotMovement(Canvas canvas) {
+        canvas.setOnMousePressed(event -> {
+            if (selectedRobot != null) {
+                // Record the initial position of the mouse and robot
+                selectedRobot.x = event.getX();
+                selectedRobot.y = event.getY();
+            }
+        });
+
+        canvas.setOnMouseDragged(event -> {
+            if (selectedRobot != null) {
+                // Update the robot's position as the mouse moves
+                selectedRobot.x = event.getX();
+                selectedRobot.y = event.getY();
+                canvas.getGraphicsContext2D().clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+                arena.drawWalls(canvas.getGraphicsContext2D());
+                arena.draw(canvas.getGraphicsContext2D());
+                drawSelectedRobotHighlight(canvas.getGraphicsContext2D());
+                updateSelectedRobotInfo();
+            }
+        });
+
+        canvas.setOnMouseReleased(event -> {
+            if (selectedRobot != null) {
+                // Finalize the robot's position
+                selectedRobot.x = event.getX();
+                selectedRobot.y = event.getY();
+            }
         });
     }
 
