@@ -111,11 +111,28 @@ public class RobotSimulation extends Application {
         MenuItem helpItem = new MenuItem("Show Help");
         helpItem.setOnAction(e -> showHelp());
 
-        helpMenu.getItems().add(helpItem);
+        Menu aboutMenu = new Menu("About");
+        MenuItem aboutItem = new MenuItem("About This Application");
+        aboutItem.setOnAction(e -> showAbout());
+        aboutMenu.getItems().add(aboutItem);
 
         // Add menus to the menu bar
-        menuBar.getMenus().addAll(fileMenu, foodMenu, helpMenu);
+        menuBar.getMenus().addAll(fileMenu, foodMenu, helpMenu, aboutMenu);
         return menuBar;
+    }
+    private void showAbout() {
+        Alert aboutAlert = new Alert(Alert.AlertType.INFORMATION);
+        aboutAlert.setTitle("About - Robot Simulation");
+        aboutAlert.setHeaderText("About This Application");
+        aboutAlert.setContentText(
+                "Robot Simulation\n" +
+                        "Version: 1.0\n" +
+                        "Author: [Vedant Pawar]\n\n" +
+                        "Description:\n" +
+                        "This simulation allows users to interact with robots, obstacles, and food in a virtual arena. " +
+                        "Users can add, select, and manage various items, and observe robot behavior in a dynamic environment."
+        );
+        aboutAlert.showAndWait();
     }
 
     private HBox createToolbar(double canvasWidth, double canvasHeight, Canvas canvas) {
@@ -143,6 +160,16 @@ public class RobotSimulation extends Application {
         Button addPredatorButton = new Button("Add Predator");
         addPredatorButton.setOnAction(e -> addNonOverlappingItem(
                 new PredatorRobot(0, 0, 20, Math.random() * 2 * Math.PI, 1.2), canvasWidth, canvasHeight));
+
+        // Add this code in the createToolbar method
+        Button addBeamRobotButton = new Button("Add Beam Sensor Robot");
+        addBeamRobotButton.setOnAction(e -> addNonOverlappingItem(
+                new BeamSensorRobot(0, 0, 20, Math.random() * 2 * Math.PI, 1.5, 100),
+                canvasWidth, canvasHeight));
+
+        toolbar.getChildren().addAll(addBeamRobotButton);
+
+
 
         // Select Robot button
         Button selectRobotButton = new Button("Select Robot");
@@ -266,7 +293,7 @@ public class RobotSimulation extends Application {
         helpAlert.setTitle("Help - Robot Simulation");
         helpAlert.setHeaderText("Instructions");
         helpAlert.setContentText(
-                "Welcome to the Robot Simulation!\n\n" +
+                "Welcome to the Robot Simulation!\n" +
                         "Here are the controls:\n" +
                         "- Start: Starts the simulation.\n" +
                         "- Pause: Pauses the simulation.\n" +
