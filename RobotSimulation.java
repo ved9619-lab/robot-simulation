@@ -111,6 +111,9 @@ public class RobotSimulation extends Application {
         MenuItem helpItem = new MenuItem("Show Help");
         helpItem.setOnAction(e -> showHelp());
 
+        helpMenu.getItems().add(helpItem);
+
+
         Menu aboutMenu = new Menu("About");
         MenuItem aboutItem = new MenuItem("About This Application");
         aboutItem.setOnAction(e -> showAbout());
@@ -300,7 +303,7 @@ public class RobotSimulation extends Application {
         helpAlert.setTitle("Help - Robot Simulation");
         helpAlert.setHeaderText("Instructions");
         helpAlert.setContentText(
-                "Welcome to the Robot Simulation!\n" +
+                "Welcome to the Robot Simulation!\n\n" +
                         "Here are the controls:\n" +
                         "- Start: Starts the simulation.\n" +
                         "- Pause: Pauses the simulation.\n" +
@@ -318,6 +321,7 @@ public class RobotSimulation extends Application {
         );
         helpAlert.showAndWait();
     }
+
 
 
     private void resetArena() {
