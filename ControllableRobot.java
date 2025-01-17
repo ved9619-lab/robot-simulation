@@ -133,7 +133,7 @@ public class ControllableRobot extends ArenaItem {
             gc.strokeRect(x - radius, y - radius - 10, radius * 2, 5);
 
             // Score display
-            gc.setFill(Color.WHITE);
+            gc.setFill(Color.BLACK);
             gc.fillText("Score: " + score, x - radius, y - radius - 20);
         }
     }

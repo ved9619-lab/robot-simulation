@@ -217,14 +217,14 @@ public class RobotSimulation extends Application {
 
 
         // Select Robot button
-        Button selectRobotButton = new Button("Select Robot");
+        Button selectRobotButton = new Button("Select");
         selectRobotButton.setOnAction(e -> {
             enableRobotSelection(canvas);
             enableRobotMovement(canvas); // Enable robot movement after selection
         });
 
         // Delete Selected Robot button
-        Button deleteRobotButton = new Button("Delete Selected Robot");
+        Button deleteRobotButton = new Button("Delete Selected ");
         deleteRobotButton.setOnAction(e -> deleteSelectedRobot());
 
         toolbar.getChildren().addAll(startButton, pauseButton, addRobotButton, addObstacleButton, addPredatorButton,

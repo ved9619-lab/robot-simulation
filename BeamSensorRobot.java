@@ -27,14 +27,15 @@ public class BeamSensorRobot extends Robot {
             } else if (detectedItem instanceof Food) {
                 moveTowardFood(detectedItem, arena);
             }
+        } else if (detectWallInPath(arena)) {
+            handleDetectedObstacle(); // Turn away if a wall is detected
         }
 
-        avoidObstacles(arena);
         stayInArenaBounds(arena);
     }
 
     private void handleDetectedObstacle() {
-        angle += TURN_ANGLE; // Turn away from obstacle
+        angle += TURN_ANGLE; // Turn away from obstacle or wall
     }
 
     private void moveTowardFood(ArenaItem food, RobotArena arena) {
@@ -86,10 +87,58 @@ public class BeamSensorRobot extends Robot {
                     double dx = item.x - this.x;
                     double dy = item.y - this.y;
                     double angleToItem = Math.atan2(dy, dx);
-                    return Math.abs(angle - angleToItem) < DETECTION_ANGLE;
+                    double angleDifference = Math.abs(angle - angleToItem);
+                    return angleDifference < DETECTION_ANGLE || angleDifference > 2 * Math.PI - DETECTION_ANGLE;
                 })
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Detects if the beam intersects with any of the walls.
+     *
+     * @param arena The arena to check for walls.
+     * @return True if a wall is detected within the sensor range, false otherwise.
+     */
+    private boolean detectWallInPath(RobotArena arena) {
+        double arenaWidth = arena.getWidth();
+        double arenaHeight = arena.getHeight();
+
+        // Calculate beam endpoint
+        double beamEndX = x + sensorRange * Math.cos(angle);
+        double beamEndY = y + sensorRange * Math.sin(angle);
+
+        // Check for intersection with each wall
+        return intersectsLine(x, y, beamEndX, beamEndY, 0, 0, arenaWidth, 0) || // Top wall
+                intersectsLine(x, y, beamEndX, beamEndY, 0, 0, 0, arenaHeight) || // Left wall
+                intersectsLine(x, y, beamEndX, beamEndY, arenaWidth, 0, arenaWidth, arenaHeight) || // Right wall
+                intersectsLine(x, y, beamEndX, beamEndY, 0, arenaHeight, arenaWidth, arenaHeight); // Bottom wall
+    }
+
+    /**
+     * Checks if a line segment intersects another line segment.
+     *
+     * @param x1 Start x of first line
+     * @param y1 Start y of first line
+     * @param x2 End x of first line
+     * @param y2 End y of first line
+     * @param x3 Start x of second line
+     * @param y3 Start y of second line
+     * @param x4 End x of second line
+     * @param y4 End y of second line
+     * @return True if the lines intersect, false otherwise.
+     */
+    private boolean intersectsLine(double x1, double y1, double x2, double y2,
+                                   double x3, double y3, double x4, double y4) {
+        double denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+        if (denom == 0) {
+            return false; // Parallel lines
+        }
+
+        double ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+        double ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+
+        return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
     }
 
     // Getter for sensorRange
