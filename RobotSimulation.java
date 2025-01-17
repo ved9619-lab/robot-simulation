@@ -31,12 +31,17 @@ public class RobotSimulation extends Application {
     private boolean isFoodSpawning = false; // Flag to control food spawning
     private ArenaItem selectedRobot;
     private Text selectedRobotInfo;
+    private ControllableRobot controllableRobot;
+
 
     private static final int MAX_FOOD_ITEMS = 10; // Maximum number of food items allowed in the arena
 
     @Override
     public void start(Stage primaryStage) {
+
         BorderPane root = new BorderPane();
+        Scene scene = new Scene(root); // Initialize the Scene object
+        primaryStage.setScene(scene);  // Set the Scene for the Stage
 
         // Menu bar
         MenuBar menuBar = createMenuBar(primaryStage);
@@ -78,10 +83,30 @@ public class RobotSimulation extends Application {
         foodSpawner = new Timeline(new KeyFrame(Duration.seconds(5), e -> spawnFood()));
         foodSpawner.setCycleCount(Timeline.INDEFINITE);
 
-        primaryStage.setScene(new Scene(root));
+        // Add keyboard event handlers for controlling the bot
+        scene.setOnKeyPressed(event -> {
+            if (controllableRobot != null) {
+                switch (event.getCode()) {
+                    case W -> controllableRobot.moveUp();                // Move up
+                    case S -> controllableRobot.moveDown(canvas.getHeight()); // Move down
+                    case A -> controllableRobot.moveLeft();              // Move left
+                    case D -> controllableRobot.moveRight(canvas.getWidth()); // Move right
+                }
+                // Refresh canvas
+                gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+                arena.drawWalls(gc);
+                arena.draw(gc); // Redraw all arena items
+            }
+        });
+
+
+        // Set title and show the primary stage
         primaryStage.setTitle("Robot Simulation");
         primaryStage.show();
     }
+
+
+
 
     private MenuBar createMenuBar(Stage stage) {
         MenuBar menuBar = new MenuBar();
@@ -170,6 +195,15 @@ public class RobotSimulation extends Application {
         Button addPredatorButton = new Button("Add Predator");
         addPredatorButton.setOnAction(e -> addNonOverlappingItem(
                 new PredatorRobot(0, 0, 20, Math.random() * 2 * Math.PI, 1.2), canvasWidth, canvasHeight));
+
+        // Add Control Bot button
+        Button addControlBotButton = new Button("Add Control Bot");
+        addControlBotButton.setOnAction(e -> {
+            controllableRobot = new ControllableRobot(100, 100, 20, 5); // Place at a default position
+            arena.addItem(controllableRobot);
+        });
+        toolbar.getChildren().add(addControlBotButton);
+
 
         // Add this code in the createToolbar method
         Button addBeamRobotButton = new Button("Add Beam Sensor Robot");
