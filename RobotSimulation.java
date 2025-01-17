@@ -116,8 +116,15 @@ public class RobotSimulation extends Application {
         aboutItem.setOnAction(e -> showAbout());
         aboutMenu.getItems().add(aboutItem);
 
-        // Add menus to the menu bar
-        menuBar.getMenus().addAll(fileMenu, foodMenu, helpMenu, aboutMenu);
+        // Reset Menu (Standalone Menu)
+        Menu resetMenu = new Menu("Reset");
+        MenuItem resetItem = new MenuItem("Reset Arena");
+        resetItem.setOnAction(e -> resetArena());
+
+        resetMenu.getItems().add(resetItem); // Add Reset functionality to its own menu
+
+// Add menus to the menu bar
+        menuBar.getMenus().addAll(fileMenu, foodMenu, helpMenu, aboutMenu, resetMenu);
         return menuBar;
     }
     private void showAbout() {
@@ -127,7 +134,7 @@ public class RobotSimulation extends Application {
         aboutAlert.setContentText(
                 "Robot Simulation\n" +
                         "Version: 1.0\n" +
-                        "Author: [Vedant Pawar]\n\n" +
+                        "Author: [Vedant Pawar]\n" +
                         "Description:\n" +
                         "This simulation allows users to interact with robots, obstacles, and food in a virtual arena. " +
                         "Users can add, select, and manage various items, and observe robot behavior in a dynamic environment."
@@ -310,6 +317,25 @@ public class RobotSimulation extends Application {
                         "Enjoy the simulation!"
         );
         helpAlert.showAndWait();
+    }
+
+
+    private void resetArena() {
+        // Stop any ongoing animations or timers
+        animationTimer.stop();
+        foodSpawner.stop();
+        isFoodSpawning = false;
+
+        // Clear the arena and reload the default configuration
+        arena = new RobotArena(800, 600); // Reset arena with default size
+        setupDefaultArena(); // Load default arena setup
+
+        // Reset selected robot info
+        selectedRobot = null;
+        updateSelectedRobotInfo();
+
+        // Restart the animation timer
+        animationTimer.start();
     }
 
     private void addNonOverlappingItem(ArenaItem item, double canvasWidth, double canvasHeight) {
