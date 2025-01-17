@@ -6,11 +6,15 @@ import javafx.scene.paint.Color;
 public class ControllableRobot extends ArenaItem {
     private double speed;
     private int health;
+    private int score; // New feature: score tracking
+    private boolean shieldActive; // New feature: shield mechanism
 
     public ControllableRobot(double x, double y, double radius, double speed) {
         super(x, y, radius);
         this.speed = speed;
         this.health = 100; // Initial health
+        this.score = 0; // Initial score
+        this.shieldActive = false; // Shield is inactive by default
     }
 
     public void moveUp() {
@@ -34,33 +38,53 @@ public class ControllableRobot extends ArenaItem {
     }
 
     public void reduceHealth(int amount) {
-        this.health = Math.max(0, this.health - amount); // Prevent health from dropping below 0
+        if (!shieldActive) { // Reduce health only if shield is inactive
+            this.health = Math.max(0, this.health - amount); // Prevent health from dropping below 0
+        }
     }
 
     public void increaseHealth(int amount) {
         this.health = Math.min(100, this.health + amount); // Cap health at 100
     }
 
-    // Getter for speed
+    public int getScore() {
+        return score;
+    }
+
+    public void increaseScore(int amount) {
+        this.score += amount;
+    }
+
+    public boolean isShieldActive() {
+        return shieldActive;
+    }
+
+    public void activateShield() {
+        this.shieldActive = true;
+    }
+
+    public void deactivateShield() {
+        this.shieldActive = false;
+    }
+
     public double getSpeed() {
         return speed;
     }
 
     @Override
     public void update(RobotArena arena) {
-        // Check collisions with other arena items
         for (ArenaItem item : arena.getItems()) {
             if (item != this) {
                 if (item instanceof Food && isCollidingWith(item)) {
                     arena.removeItem(item); // Remove the food from the arena
                     increaseHealth(10); // Increase health by 10 when food is eaten
+                    increaseScore(5); // Increase score by 5
                 } else if (isCollidingWith(item)) {
                     reduceHealth(10); // Reduce health by 10 on collision
                 }
             }
         }
 
-        // Remove the robot from the arena if health reaches 0
         if (health <= 0) {
             arena.removeItem(this);
         }
@@ -98,7 +122,7 @@ public class ControllableRobot extends ArenaItem {
             gc.fillRect(x + radius, y - wheelWidth / 2, wheelHeight, wheelWidth);
 
             // Decorative border
-            gc.setStroke(Color.GOLD);
+            gc.setStroke(shieldActive ? Color.CYAN : Color.GOLD); // Cyan border when shield is active
             gc.setLineWidth(2);
             gc.strokeOval(x - radius, y - radius, radius * 2, radius * 2);
 
@@ -107,6 +131,10 @@ public class ControllableRobot extends ArenaItem {
             gc.fillRect(x - radius, y - radius - 10, radius * 2 * health / 100.0, 5);
             gc.setStroke(Color.BLACK);
             gc.strokeRect(x - radius, y - radius - 10, radius * 2, 5);
+
+            // Score display
+            gc.setFill(Color.WHITE);
+            gc.fillText("Score: " + score, x - radius, y - radius - 20);
         }
     }
 }

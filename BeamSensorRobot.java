@@ -7,6 +7,8 @@ import javafx.scene.paint.Color;
  * A robot with a beam sensor that detects objects in its path.
  */
 public class BeamSensorRobot extends Robot {
+    private static final double TURN_ANGLE = Math.PI / 4; // 45 degrees
+    private static final double DETECTION_ANGLE = Math.PI / 6; // 30 degrees
     private double sensorRange; // Range of the beam sensor
 
     public BeamSensorRobot(double x, double y, double radius, double angle, double speed, double sensorRange) {
@@ -16,25 +18,14 @@ public class BeamSensorRobot extends Robot {
 
     @Override
     public void update(RobotArena arena) {
-        // Move the robot
         move();
 
-        // Detect obstacles or food in its path
         ArenaItem detectedItem = detectItemInPath(arena);
         if (detectedItem != null) {
             if (detectedItem instanceof Obstacle) {
-                // Turn away from the obstacle
-                angle += Math.PI / 4; // Turn 45 degrees
+                handleDetectedObstacle();
             } else if (detectedItem instanceof Food) {
-                // Move towards food
-                double dx = detectedItem.x - this.x;
-                double dy = detectedItem.y - this.y;
-                this.angle = Math.atan2(dy, dx);
-
-                // Absorb food if overlapping
-                if (this.overlaps(detectedItem)) {
-                    arena.removeItem(detectedItem);
-                }
+                moveTowardFood(detectedItem, arena);
             }
         }
 
@@ -42,9 +33,23 @@ public class BeamSensorRobot extends Robot {
         stayInArenaBounds(arena);
     }
 
+    private void handleDetectedObstacle() {
+        angle += TURN_ANGLE; // Turn away from obstacle
+    }
+
+    private void moveTowardFood(ArenaItem food, RobotArena arena) {
+        double dx = food.x - this.x;
+        double dy = food.y - this.y;
+        this.angle = Math.atan2(dy, dx);
+
+        // Absorb food if overlapping
+        if (this.overlaps(food)) {
+            arena.removeItem(food);
+        }
+    }
+
     @Override
     public void draw(GraphicsContext gc) {
-        // Draw robot body and wheels
         super.draw(gc);
 
         // Draw beam sensor
@@ -52,7 +57,11 @@ public class BeamSensorRobot extends Robot {
         gc.setLineWidth(1);
         gc.strokeLine(x, y, x + sensorRange * Math.cos(angle), y + sensorRange * Math.sin(angle));
 
-        // Draw sensor range indicator (optional)
+        // Optionally alternate beam color for a pulsating effect
+        gc.setStroke(Color.color(1, 1, 0, 0.5)); // Semi-transparent yellow
+        gc.strokeLine(x, y, x + (sensorRange * 0.8) * Math.cos(angle), y + (sensorRange * 0.8) * Math.sin(angle));
+
+        // Draw sensor range circle
         gc.setStroke(Color.LIGHTGRAY);
         gc.setLineWidth(0.5);
         gc.strokeOval(x - sensorRange, y - sensorRange, sensorRange * 2, sensorRange * 2);
@@ -65,18 +74,30 @@ public class BeamSensorRobot extends Robot {
      * @return The detected ArenaItem, or null if no item is found.
      */
     private ArenaItem detectItemInPath(RobotArena arena) {
-        for (ArenaItem item : arena.getItems()) {
-            if (item != this) { // Exclude self
-                double dx = item.x - this.x;
-                double dy = item.y - this.y;
-                double distance = Math.sqrt(dx * dx + dy * dy);
-                double angleToItem = Math.atan2(dy, dx);
+        return arena.getItems().stream()
+                .filter(item -> item != this) // Exclude self
+                .filter(item -> {
+                    double dx = item.x - this.x;
+                    double dy = item.y - this.y;
+                    double distance = Math.sqrt(dx * dx + dy * dy);
+                    return distance <= sensorRange;
+                })
+                .filter(item -> {
+                    double dx = item.x - this.x;
+                    double dy = item.y - this.y;
+                    double angleToItem = Math.atan2(dy, dx);
+                    return Math.abs(angle - angleToItem) < DETECTION_ANGLE;
+                })
+                .findFirst()
+                .orElse(null);
+    }
 
-                if (distance <= sensorRange && Math.abs(angle - angleToItem) < Math.PI / 6) { // Within range and narrow angle
-                    return item;
-                }
-            }
-        }
-        return null;
+    // Getter for sensorRange
+    public double getSensorRange() {
+        return sensorRange;
+    }
+
+    public void setSensorRange(double sensorRange) {
+        this.sensorRange = sensorRange;
     }
 }

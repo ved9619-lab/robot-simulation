@@ -162,7 +162,8 @@ public class RobotSimulation extends Application {
         aboutAlert.setContentText(
                 "Robot Simulation\n" +
                         "Version: 1.0\n" +
-                        "Author: [Vedant Pawar]\n" +
+                        "Author: Vedant Pawar\n" +
+                        "Student Number: 32001248\n"+
                         "Description:\n" +
                         "This simulation allows users to interact with robots, obstacles, and food in a virtual arena. " +
                         "Users can add, select, and manage various items, and observe robot behavior in a dynamic environment."
@@ -346,6 +347,9 @@ public class RobotSimulation extends Application {
                         "- Add Predator: Adds a predator bot to the arena.\n" +
                         "- Select Robot: Allows you to select a robot by clicking on it.\n" +
                         "- Delete Selected Robot: Deletes the currently selected robot.\n" +
+                        "- Add Control Bot: Adds a bot that can be controlled by the user using w,s,a,d,\n"+
+                        "- Add Beam Sensor Robot: Adds a beam sensor robot to the arena.\n" +
+                        "- Reset: Resets the simulation.\n" +
                         "- Toggle Food Spawning: Starts or stops food spawning.\n\n" +
                         "Objective:\n" +
                         "- Prey bots chase food and avoid obstacles.\n" +
