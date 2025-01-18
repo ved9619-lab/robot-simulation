@@ -67,8 +67,15 @@ public class PredatorRobot extends Robot {
      */
     @Override
     public void draw(GraphicsContext gc) {
-        // Draw predator robot with wheels
-        super.draw(gc);
+        // Draw predator robot body
+        gc.setFill(Color.RED); // Set predator color to red
+        gc.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+
+        // Draw predator eyes for a "predator" look
+        gc.setFill(Color.BLACK);
+        double eyeSize = radius / 4;
+        gc.fillOval(x - radius / 2, y - radius / 2, eyeSize, eyeSize);
+        gc.fillOval(x + radius / 4, y - radius / 2, eyeSize, eyeSize);
 
         // Draw health level below the robot
         gc.setFill(Color.BLACK);
