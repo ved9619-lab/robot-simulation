@@ -19,7 +19,7 @@ public class PredatorRobot extends Robot {
      * @param speed  The speed of the predator robot.
      */
     public PredatorRobot(double x, double y, double radius, double angle, double speed) {
-        super(x, y, radius, angle, speed * 2.0); // Increase speed by 50%
+        super(x, y, radius, angle, speed * 1.75); // Increase speed by 50%
         this.health = 100; // Initial health level
     }
 

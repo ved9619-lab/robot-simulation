@@ -5,7 +5,7 @@ import javafx.scene.paint.Color;
 
 /**
  * A robot with a beam sensor that detects objects in its path.
- * This robot can sense obstacles, food, and walls within a defined sensor range,
+ * This robot can sense obstacles, food, walls, and other robots within a defined sensor range,
  * and adjust its behavior based on detected items.
  */
 public class BeamSensorRobot extends Robot {
@@ -14,6 +14,7 @@ public class BeamSensorRobot extends Robot {
     private static final double DETECTION_ANGLE = Math.PI / 6; // 30 degrees
     // Sensor range of the robot (distance the beam can detect objects)
     private double sensorRange; // Range of the beam sensor
+
     /**
      * Constructs a BeamSensorRobot with specified position, size, and movement attributes.
      * @param x           X-coordinate of the robot.
@@ -28,20 +29,21 @@ public class BeamSensorRobot extends Robot {
         super(x, y, radius, angle, speed);
         this.sensorRange = sensorRange;
     }
+
     /**
      * Updates the robot's position and behavior based on sensor detection.
-     * The robot moves and reacts to detected items such as obstacles or food.
+     * The robot moves and reacts to detected items such as obstacles, food, or other robots.
      *
      * @param arena The RobotArena that contains all items and walls.
      */
 
     @Override
     public void update(RobotArena arena) {
-        move();// Move in the current direction
+        move(); // Move in the current direction
         // Detect items in the robot's path
         ArenaItem detectedItem = detectItemInPath(arena);
         if (detectedItem != null) {
-            if (detectedItem instanceof Obstacle) {
+            if (detectedItem instanceof Obstacle || detectedItem instanceof Robot) {
                 handleDetectedObstacle();
             } else if (detectedItem instanceof Food) {
                 moveTowardFood(detectedItem, arena);
@@ -52,13 +54,15 @@ public class BeamSensorRobot extends Robot {
 
         stayInArenaBounds(arena);
     }
+
     /**
-     * Handles behavior when an obstacle or wall is detected.
+     * Handles behavior when an obstacle, another robot, or a wall is detected.
      * The robot turns away by a predefined angle.
      */
     private void handleDetectedObstacle() {
-        angle += TURN_ANGLE; // Turn away from obstacle or wall
+        angle += TURN_ANGLE; // Turn away from obstacle, robot, or wall
     }
+
     /**
      * Moves the robot toward a detected food item.
      * If the robot overlaps the food, the food is absorbed (removed from the arena).
@@ -75,6 +79,7 @@ public class BeamSensorRobot extends Robot {
             arena.removeItem(food);
         }
     }
+
     /**
      * Draws the robot, including its beam sensor and sensor range.
      * @param gc The GraphicsContext used for rendering.
@@ -124,7 +129,7 @@ public class BeamSensorRobot extends Robot {
                     return angleDifference < DETECTION_ANGLE || angleDifference > 2 * Math.PI - DETECTION_ANGLE;
                 })
                 .findFirst()
-                .orElse(null);// Return the first detected item or null
+                .orElse(null); // Return the first detected item or null
     }
 
     /**

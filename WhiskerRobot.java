@@ -67,6 +67,34 @@ public class WhiskerRobot extends Robot {
     }
 
     /**
+     * Ensures the robot stays within the boundaries of the arena.
+     *
+     * @param arena The arena containing all items.
+     */
+    public void stayInArenaBounds(RobotArena arena) {
+        double arenaWidth = arena.getWidth();
+        double arenaHeight = arena.getHeight();
+
+        // Check horizontal bounds
+        if (x - radius < 0) {
+            x = radius; // Prevent going out of the left boundary
+            angle = Math.PI - angle; // Reflect angle horizontally
+        } else if (x + radius > arenaWidth) {
+            x = arenaWidth - radius; // Prevent going out of the right boundary
+            angle = Math.PI - angle; // Reflect angle horizontally
+        }
+
+        // Check vertical bounds
+        if (y - radius < 0) {
+            y = radius; // Prevent going out of the top boundary
+            angle = -angle; // Reflect angle vertically
+        } else if (y + radius > arenaHeight) {
+            y = arenaHeight - radius; // Prevent going out of the bottom boundary
+            angle = -angle; // Reflect angle vertically
+        }
+    }
+
+    /**
      * Draws the robot, including its whiskers and energy level.
      *
      * @param gc The GraphicsContext used for rendering.
@@ -112,11 +140,11 @@ public class WhiskerRobot extends Robot {
     }
 
     /**
-     * Checks if the whisker is touching any other arena item.
+     * Checks if the whisker is touching any other arena item or the arena walls.
      *
      * @param arena         The arena containing all items.
      * @param whiskerOffset The angle offset for the whisker (-Math.PI / 8 for left, Math.PI / 8 for right).
-     * @return True if the whisker is touching any arena item, false otherwise.
+     * @return True if the whisker is touching any arena item or the walls, false otherwise.
      */
     private boolean isWhiskerTouching(RobotArena arena, double whiskerOffset) {
         double precisionStep = 2.0; // Distance between sampled points along the whisker for higher precision
@@ -125,6 +153,13 @@ public class WhiskerRobot extends Robot {
             double whiskerX = x + length * Math.cos(angle + whiskerOffset);
             double whiskerY = y + length * Math.sin(angle + whiskerOffset);
 
+            // Check collision with arena walls
+            if (whiskerX - SAFETY_MARGIN < 0 || whiskerX + SAFETY_MARGIN > arena.getWidth() ||
+                    whiskerY - SAFETY_MARGIN < 0 || whiskerY + SAFETY_MARGIN > arena.getHeight()) {
+                return true; // Collision with wall detected
+            }
+
+            // Check collision with other items in the arena
             for (ArenaItem item : arena.getItems()) {
                 if (item == this) continue; // Skip self-collision check
 
@@ -134,7 +169,7 @@ public class WhiskerRobot extends Robot {
                 double distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < item.radius + SAFETY_MARGIN) { // Include safety margin
-                    return true; // Collision detected
+                    return true; // Collision with item detected
                 }
             }
         }
