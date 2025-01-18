@@ -17,21 +17,18 @@ public abstract class ArenaItem {
 
     /**
      * Draws the item on the canvas.
-     *
      * @param gc GraphicsContext used to render the item.
      */
     public abstract void draw(GraphicsContext gc);
 
     /**
      * Updates the item's state.
-     *
      * @param arena Reference to the RobotArena for interaction.
      */
     public abstract void update(RobotArena arena);
 
     /**
      * Checks if this item overlaps with another item.
-     *
      * @param other The other ArenaItem.
      * @return True if the items overlap, false otherwise.
      */

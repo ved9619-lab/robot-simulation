@@ -23,15 +23,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-
+/**
+ * Main class for the Robot Simulation application.
+ * This class manages the UI, robot behaviors, and interactions within the arena.
+ */
 public class RobotSimulation extends Application {
-    private RobotArena arena;
-    private AnimationTimer animationTimer;
-    private Timeline foodSpawner;
+    private RobotArena arena; // The arena that has all items
+    private AnimationTimer animationTimer;// Timer
+    private Timeline foodSpawner;// Flag to control food
     private boolean isFoodSpawning = false; // Flag to control food spawning
-    private ArenaItem selectedRobot;
-    private Text selectedRobotInfo;
-    private ControllableRobot controllableRobot;
+    private ArenaItem selectedRobot; // selected bot
+    private Text selectedRobotInfo;// To display info of selected bot
+    private ControllableRobot controllableRobot; // Reference to the user-controlled robot
 
 
     private static final int MAX_FOOD_ITEMS = 10; // Maximum number of food items allowed in the arena
@@ -40,7 +43,7 @@ public class RobotSimulation extends Application {
     public void start(Stage primaryStage) {
 
         BorderPane root = new BorderPane();
-        Scene scene = new Scene(root); // Initialize the Scene object
+        Scene scene = new Scene(root); // Initialise the Scene object
         primaryStage.setScene(scene);  // Set the Scene for the Stage
 
         // Menu bar
@@ -60,7 +63,7 @@ public class RobotSimulation extends Application {
         selectedRobotInfo = new Text("Selected Robot: None");
         root.setRight(selectedRobotInfo);
 
-        // Initialize arena
+        // Initialise arena
         arena = new RobotArena(canvas.getWidth(), canvas.getHeight());
         if (!loadDefaultConfiguration()) {
             setupDefaultArena();
@@ -79,7 +82,7 @@ public class RobotSimulation extends Application {
             }
         };
 
-        // Initialize food spawner timeline (disabled by default)
+        // Initialise food spawner timeline (disabled by default)
         foodSpawner = new Timeline(new KeyFrame(Duration.seconds(5), e -> spawnFood()));
         foodSpawner.setCycleCount(Timeline.INDEFINITE);
 
@@ -278,7 +281,7 @@ public class RobotSimulation extends Application {
 
         canvas.setOnMouseReleased(event -> {
             if (selectedRobot != null) {
-                // Finalize the robot's position
+                // Finalise the robot's position
                 selectedRobot.x = event.getX();
                 selectedRobot.y = event.getY();
             }
@@ -380,50 +383,73 @@ public class RobotSimulation extends Application {
         animationTimer.start();
     }
 
+
+    /**
+     * Adds an item to the arena ensuring it does not overlap with existing items.
+     *
+     * @param item         The ArenaItem to add to the arena.
+     * @param canvasWidth  The width of the canvas, used to ensure placement within bounds.
+     * @param canvasHeight The height of the canvas, used to ensure placement within bounds.
+     */
     private void addNonOverlappingItem(ArenaItem item, double canvasWidth, double canvasHeight) {
-        boolean overlapping;
+        boolean overlapping; // Flag to check for overlapping items
         do {
             overlapping = false;
 
-            // Ensure items are placed within safe boundaries (at least radius distance from borders)
+            // Generate random position within canvas boundaries, accounting for item radius
             item.x = item.radius + Math.random() * (canvasWidth - 2 * item.radius);
             item.y = item.radius + Math.random() * (canvasHeight - 2 * item.radius);
 
+            // Check for overlap with existing items in the arena
             for (ArenaItem other : arena.getItems()) {
                 double dx = item.x - other.x;
                 double dy = item.y - other.y;
                 double distance = Math.sqrt(dx * dx + dy * dy);
 
+                // If the distance between items is less than the sum of their radii, overlap exists
                 if (distance < item.radius + other.radius) {
-                    overlapping = true; // Overlap detected
+                    overlapping = true; // Set flag to true to retry position generation
                     break;
                 }
             }
-        } while (overlapping);
+        } while (overlapping); // Repeat until a non-overlapping position is found
 
-        arena.addItem(item);
+        arena.addItem(item); // Add the item to the arena after finding a valid position
     }
 
+    /**
+     * Sets up the arena with a default configuration of robots and obstacles.
+     * Adds only normal robots and obstacles initially, with predefined positions and attributes.
+     */
     private void setupDefaultArena() {
-        // Add only normal robots and obstacles initially, with increased speed for normal robots
         addNonOverlappingItem(new WhiskerRobot(100, 100, 20, Math.PI / 4, 2, 50), 800, 600);
         addNonOverlappingItem(new WhiskerRobot(200, 200, 20, Math.PI / 3, 1.8, 50), 800, 600);
         addNonOverlappingItem(new Obstacle(400, 300, 30), 800, 600);
     }
 
+    /**
+     * Attempts to load the default configuration from a file.
+     *
+     * @return True if the default configuration is successfully loaded, false otherwise.
+     */
     private boolean loadDefaultConfiguration() {
         File defaultConfig = new File("default_config.txt");
         if (defaultConfig.exists()) {
             try {
-                loadArenaFromFile(defaultConfig);
+                loadArenaFromFile(defaultConfig); // Load arena items from the file
                 return true;
             } catch (IOException e) {
-                showError("Failed to load default configuration.");
+                showError("Failed to load default configuration."); // Show error if loading fails
             }
         }
-        return false;
+        return false; // Return false if the file does not exist or loading fails
     }
 
+    /**
+     * Saves the current arena configuration to a file.
+     *
+     * @param stage The primary stage, used to display a file chooser dialog.
+     */
     private void saveConfiguration(Stage stage) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Configuration");
@@ -439,13 +465,18 @@ public class RobotSimulation extends Application {
                             .append(item.y).append(",")
                             .append(item.radius).append("\n");
                 }
-                Files.write(file.toPath(), data.toString().getBytes());
+                Files.write(file.toPath(), data.toString().getBytes()); // Write the configuration to the file
             } catch (IOException e) {
-                showError("Failed to save configuration.");
+                showError("Failed to save configuration."); // Show error if saving fails
             }
         }
     }
 
+    /**
+     * Loads the arena configuration from a file.
+     *
+     * @param stage The primary stage, used to display a file chooser dialog.
+     */
     private void loadConfiguration(Stage stage) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Load Configuration");
@@ -454,15 +485,21 @@ public class RobotSimulation extends Application {
         File file = fileChooser.showOpenDialog(stage);
         if (file != null) {
             try {
-                loadArenaFromFile(file);
+                loadArenaFromFile(file); // Load arena items from the selected file
             } catch (IOException e) {
-                showError("Failed to load configuration.");
+                showError("Failed to load configuration."); // Show error if loading fails
             }
         }
     }
 
+    /**
+     * Loads arena items from a specified file.
+     *
+     * @param file The file containing the arena configuration.
+     * @throws IOException If an error occurs while reading the file.
+     */
     private void loadArenaFromFile(File file) throws IOException {
-        arena = new RobotArena(800, 600); // Reset arena
+        arena = new RobotArena(800, 600); // Reset the arena
         List<String> lines = Files.readAllLines(file.toPath());
         for (String line : lines) {
             String[] parts = line.split(",");
@@ -471,6 +508,7 @@ public class RobotSimulation extends Application {
             double y = Double.parseDouble(parts[2]);
             double radius = Double.parseDouble(parts[3]);
 
+            // Add items based on their type
             if (type.equals("WhiskerRobot")) {
                 arena.addItem(new WhiskerRobot(x, y, radius, Math.PI / 4, 2, 50));
             } else if (type.equals("Obstacle")) {
@@ -483,6 +521,11 @@ public class RobotSimulation extends Application {
         }
     }
 
+    /**
+     * Displays an error message in a dialog box.
+     *
+     * @param message The error message to display.
+     */
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
@@ -490,7 +533,6 @@ public class RobotSimulation extends Application {
         alert.setContentText(message);
         alert.showAndWait();
     }
-
     public static void main(String[] args) {
         launch(args);
     }

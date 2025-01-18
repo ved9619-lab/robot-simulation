@@ -9,11 +9,26 @@ import javafx.scene.paint.Color;
 public class PredatorRobot extends Robot {
     private double health; // Health level of the predator bot
 
+    /**
+     * Constructs a predator robot with the specified attributes.
+     *
+     * @param x      The x-coordinate of the predator's center.
+     * @param y      The y-coordinate of the predator's center.
+     * @param radius The radius of the predator robot.
+     * @param angle  The initial angle of movement.
+     * @param speed  The speed of the predator robot.
+     */
     public PredatorRobot(double x, double y, double radius, double angle, double speed) {
         super(x, y, radius, angle, speed);
         this.health = 100; // Initial health level
     }
 
+    /**
+     * Updates the predator robot's state.
+     * Handles health reduction over time, movement, prey consumption, and obstacle avoidance.
+     *
+     * @param arena The arena containing all items.
+     */
     @Override
     public void update(RobotArena arena) {
         if (health <= 0) {
@@ -29,7 +44,7 @@ public class PredatorRobot extends Robot {
         if (nearestPrey != null) {
             double dx = nearestPrey.x - this.x;
             double dy = nearestPrey.y - this.y;
-            this.angle = Math.atan2(dy, dx);
+            this.angle = Math.atan2(dy, dx); // Adjust angle to move toward the prey
 
             // Eat prey if overlapping
             if (this.overlaps(nearestPrey)) {
@@ -40,10 +55,15 @@ public class PredatorRobot extends Robot {
         }
 
         move();
-        avoidObstacles(arena);
-        stayInArenaBounds(arena);
+        avoidObstacles(arena); // Handle obstacle avoidance
+        stayInArenaBounds(arena); // Ensure predator stays within bounds
     }
 
+    /**
+     * Draws the predator robot and its health level.
+     *
+     * @param gc The GraphicsContext used for rendering.
+     */
     @Override
     public void draw(GraphicsContext gc) {
         // Draw predator robot with wheels
@@ -65,7 +85,7 @@ public class PredatorRobot extends Robot {
         double nearestDistance = Double.MAX_VALUE;
 
         for (ArenaItem item : arena.getItems()) {
-            if (item instanceof WhiskerRobot) {
+            if (item instanceof WhiskerRobot) { // Identify prey bots
                 double distance = Math.sqrt(Math.pow(item.x - this.x, 2) + Math.pow(item.y - this.y, 2));
                 if (distance < nearestDistance) {
                     nearestDistance = distance;

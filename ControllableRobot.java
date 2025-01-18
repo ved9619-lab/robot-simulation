@@ -3,74 +3,116 @@ package com.example.robotgui;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
+/**
+ * A controllable robot that can move, interact with items in the arena, and display health and score.
+ * Features include:
+ * - Movement in all four directions within arena bounds.
+ * - Health and score tracking.
+ */
 public class ControllableRobot extends ArenaItem {
-    private double speed;
-    private int health;
-    private int score; // New feature: score tracking
-    private boolean shieldActive; // New feature: shield mechanism
+    private double speed; // Movement speed of the robot
+    private int health; // Health of the robot (0 to 100)
+    private int score; // Score tracking for interactions
 
+    /**
+     * Constructs a controllable robot with the given attributes.
+     * @param x      Initial x-coordinate of the robot.
+     * @param y      Initial y-coordinate of the robot.
+     * @param radius Radius of the robot.
+     * @param speed  Movement speed of the robot.
+     */
     public ControllableRobot(double x, double y, double radius, double speed) {
         super(x, y, radius);
         this.speed = speed;
         this.health = 100; // Initial health
         this.score = 0; // Initial score
-        this.shieldActive = false; // Shield is inactive by default
     }
 
+    /**
+     * Moves the robot up, ensuring it stays within the arena bounds.
+     */
     public void moveUp() {
         this.y = Math.max(this.radius, this.y - speed); // Move up while staying within bounds
     }
 
+    /**
+     * Moves the robot down, ensuring it stays within the arena bounds.
+     * @param maxHeight The maximum height of the arena.
+     */
     public void moveDown(double maxHeight) {
         this.y = Math.min(maxHeight - this.radius, this.y + speed); // Move down while staying within bounds
     }
 
+    /**
+     * Moves the robot left, ensuring it stays within the arena bounds.
+     */
     public void moveLeft() {
         this.x = Math.max(this.radius, this.x - speed); // Move left while staying within bounds
     }
 
+    /**
+     * Moves the robot right, ensuring it stays within the arena bounds.
+     * @param maxWidth The maximum width of the arena.
+     */
     public void moveRight(double maxWidth) {
         this.x = Math.min(maxWidth - this.radius, this.x + speed); // Move right while staying within bounds
     }
 
+    /**
+     * Gets the current health of the robot.
+     * @return The health of the robot.
+     */
     public int getHealth() {
         return health;
     }
 
+    /**
+     * Reduces the robot's health by a specified amount.
+     * @param amount The amount to reduce health by.
+     */
     public void reduceHealth(int amount) {
-        if (!shieldActive) { // Reduce health only if shield is inactive
-            this.health = Math.max(0, this.health - amount); // Prevent health from dropping below 0
-        }
+        this.health = Math.max(0, this.health - amount); // Prevent health from dropping below 0
     }
 
+    /**
+     * Increases the robot's health by a specified amount, capped at 100.
+     *
+     * @param amount The amount to increase health by.
+     */
     public void increaseHealth(int amount) {
         this.health = Math.min(100, this.health + amount); // Cap health at 100
     }
 
+    /**
+     * Gets the current score of the robot.
+     *
+     * @return The score of the robot.
+     */
     public int getScore() {
         return score;
     }
 
+    /**
+     * Increases the robot's score by a specified amount.
+     *
+     * @param amount The amount to increase the score by.
+     */
     public void increaseScore(int amount) {
         this.score += amount;
     }
 
-    public boolean isShieldActive() {
-        return shieldActive;
-    }
-
-    public void activateShield() {
-        this.shieldActive = true;
-    }
-
-    public void deactivateShield() {
-        this.shieldActive = false;
-    }
-
+    /**
+     * Gets the movement speed of the robot.
+     * @return The speed of the robot.
+     */
     public double getSpeed() {
         return speed;
     }
 
+    /**
+     * Updates the robot's state, handling interactions with other items in the arena.
+     * @param arena The arena containing all items.
+     */
     @Override
     public void update(RobotArena arena) {
         for (ArenaItem item : arena.getItems()) {
@@ -86,10 +128,15 @@ public class ControllableRobot extends ArenaItem {
         }
 
         if (health <= 0) {
-            arena.removeItem(this);
+            arena.removeItem(this); // Remove the robot if health is 0
         }
     }
 
+    /**
+     * Checks if this robot is colliding with another item.
+     * @param other The other arena item to check for collision.
+     * @return True if the items are colliding, false otherwise.
+     */
     private boolean isCollidingWith(ArenaItem other) {
         double dx = this.x - other.x;
         double dy = this.y - other.y;
@@ -97,6 +144,10 @@ public class ControllableRobot extends ArenaItem {
         return distance < this.radius + other.radius;
     }
 
+    /**
+     * Draws the robot, including its health bar and score.
+     * @param gc The graphics context used for rendering.
+     */
     @Override
     public void draw(GraphicsContext gc) {
         if (health > 0) {
@@ -122,7 +173,7 @@ public class ControllableRobot extends ArenaItem {
             gc.fillRect(x + radius, y - wheelWidth / 2, wheelHeight, wheelWidth);
 
             // Decorative border
-            gc.setStroke(shieldActive ? Color.CYAN : Color.GOLD); // Cyan border when shield is active
+            gc.setStroke(Color.GOLD);
             gc.setLineWidth(2);
             gc.strokeOval(x - radius, y - radius, radius * 2, radius * 2);
 

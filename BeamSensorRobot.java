@@ -5,21 +5,40 @@ import javafx.scene.paint.Color;
 
 /**
  * A robot with a beam sensor that detects objects in its path.
+ * This robot can sense obstacles, food, and walls within a defined sensor range,
+ * and adjust its behavior based on detected items.
  */
 public class BeamSensorRobot extends Robot {
+    // Constants
     private static final double TURN_ANGLE = Math.PI / 4; // 45 degrees
     private static final double DETECTION_ANGLE = Math.PI / 6; // 30 degrees
+    // Sensor range of the robot (distance the beam can detect objects)
     private double sensorRange; // Range of the beam sensor
+    /**
+     * Constructs a BeamSensorRobot with specified position, size, and movement attributes.
+     * @param x           X-coordinate of the robot.
+     * @param y           Y-coordinate of the robot.
+     * @param radius      Radius of the robot.
+     * @param angle       Initial movement angle of the robot (in radians).
+     * @param speed       Speed of the robot.
+     * @param sensorRange Range of the beam sensor.
+     */
 
     public BeamSensorRobot(double x, double y, double radius, double angle, double speed, double sensorRange) {
         super(x, y, radius, angle, speed);
         this.sensorRange = sensorRange;
     }
+    /**
+     * Updates the robot's position and behavior based on sensor detection.
+     * The robot moves and reacts to detected items such as obstacles or food.
+     *
+     * @param arena The RobotArena that contains all items and walls.
+     */
 
     @Override
     public void update(RobotArena arena) {
-        move();
-
+        move();// Move in the current direction
+        // Detect items in the robot's path
         ArenaItem detectedItem = detectItemInPath(arena);
         if (detectedItem != null) {
             if (detectedItem instanceof Obstacle) {
@@ -33,11 +52,19 @@ public class BeamSensorRobot extends Robot {
 
         stayInArenaBounds(arena);
     }
-
+    /**
+     * Handles behavior when an obstacle or wall is detected.
+     * The robot turns away by a predefined angle.
+     */
     private void handleDetectedObstacle() {
         angle += TURN_ANGLE; // Turn away from obstacle or wall
     }
-
+    /**
+     * Moves the robot toward a detected food item.
+     * If the robot overlaps the food, the food is absorbed (removed from the arena).
+     * @param food  The detected food item.
+     * @param arena The RobotArena that contains all items.
+     */
     private void moveTowardFood(ArenaItem food, RobotArena arena) {
         double dx = food.x - this.x;
         double dy = food.y - this.y;
@@ -48,6 +75,10 @@ public class BeamSensorRobot extends Robot {
             arena.removeItem(food);
         }
     }
+    /**
+     * Draws the robot, including its beam sensor and sensor range.
+     * @param gc The GraphicsContext used for rendering.
+     */
 
     @Override
     public void draw(GraphicsContext gc) {
@@ -78,12 +109,14 @@ public class BeamSensorRobot extends Robot {
         return arena.getItems().stream()
                 .filter(item -> item != this) // Exclude self
                 .filter(item -> {
+                    // Check if item is within sensor range
                     double dx = item.x - this.x;
                     double dy = item.y - this.y;
                     double distance = Math.sqrt(dx * dx + dy * dy);
                     return distance <= sensorRange;
                 })
                 .filter(item -> {
+                    // Check if item is within the detection angle
                     double dx = item.x - this.x;
                     double dy = item.y - this.y;
                     double angleToItem = Math.atan2(dy, dx);
@@ -91,7 +124,7 @@ public class BeamSensorRobot extends Robot {
                     return angleDifference < DETECTION_ANGLE || angleDifference > 2 * Math.PI - DETECTION_ANGLE;
                 })
                 .findFirst()
-                .orElse(null);
+                .orElse(null);// Return the first detected item or null
     }
 
     /**
@@ -117,7 +150,6 @@ public class BeamSensorRobot extends Robot {
 
     /**
      * Checks if a line segment intersects another line segment.
-     *
      * @param x1 Start x of first line
      * @param y1 Start y of first line
      * @param x2 End x of first line

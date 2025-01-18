@@ -11,13 +11,20 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Manages all objects in the arena.
+ * Manages all objects in the arena, including robots, food, and obstacles.
+ * Provides methods for adding, removing, updating, and drawing items, as well as managing arena dimensions.
  */
 public class RobotArena {
-    private ArrayList<ArenaItem> items;
-    private double width, height;
-    private Set<Food> targetedFood; // New set to track targeted food
+    private ArrayList<ArenaItem> items; // List of all items in the arena
+    private double width, height; // Dimensions of the arena
+    private Set<Food> targetedFood; // Set to track food items that are being targeted
 
+    /**
+     * Constructs a RobotArena with the specified width and height.
+     *
+     * @param width  The width of the arena.
+     * @param height The height of the arena.
+     */
     public RobotArena(double width, double height) {
         this.width = width;
         this.height = height;
@@ -40,8 +47,8 @@ public class RobotArena {
      * @param item The item to be removed.
      */
     public void removeItem(ArenaItem item) {
-        items.remove(item);
-        targetedFood.remove(item); // Remove from targeted food if necessary
+        items.remove(item); // Remove the item from the list
+        targetedFood.remove(item); // Also remove it from the targeted food set if applicable
     }
 
     /**
@@ -72,7 +79,7 @@ public class RobotArena {
     }
 
     /**
-     * Returns the set of currently targeted food.
+     * Returns the set of currently targeted food items.
      *
      * @return Set of Food items currently being targeted.
      */
@@ -88,16 +95,16 @@ public class RobotArena {
     }
 
     /**
-     * Periodically clears the set of targeted food.
+     * Periodically clears the set of targeted food every 10 seconds.
      */
     public void periodicFoodReset() {
         Timeline resetTimer = new Timeline(new KeyFrame(Duration.seconds(10), e -> clearTargetedFood()));
-        resetTimer.setCycleCount(Timeline.INDEFINITE);
-        resetTimer.play();
+        resetTimer.setCycleCount(Timeline.INDEFINITE); // Repeat indefinitely
+        resetTimer.play(); // Start the timer
     }
 
     /**
-     * Updates the state of all items in the arena.
+     * Updates the state of all items in the arena by calling their respective update methods.
      */
     public void update() {
         for (ArenaItem item : items) {
@@ -122,8 +129,8 @@ public class RobotArena {
      * @param gc The GraphicsContext used for drawing.
      */
     public void drawWalls(GraphicsContext gc) {
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(3);
+        gc.setStroke(Color.BLACK); // Set border color to black
+        gc.setLineWidth(3); // Set border thickness
 
         // Draw top border
         gc.strokeLine(0, 0, width, 0);
