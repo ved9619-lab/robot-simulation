@@ -10,6 +10,7 @@ import javafx.scene.paint.Color;
 public class WhiskerRobot extends Robot {
     private double whiskerLength; // Length of the robot's whiskers for detection
     private double energy; // Energy level of the robot
+    private static final double SAFETY_MARGIN = 5.0; // Margin to avoid close collisions
 
     /**
      * Constructs a WhiskerRobot with specified position, size, movement parameters, and whisker length.
@@ -39,25 +40,29 @@ public class WhiskerRobot extends Robot {
             return;
         }
 
-        // Reduce energy over time
-        energy -= 0.05;
+        // Check if either whisker detects an obstacle or object
+        if (isWhiskerTouching(arena, -Math.PI / 8) || isWhiskerTouching(arena, Math.PI / 8)) {
+            angle += Math.PI / 2; // Immediately change direction by turning 90 degrees
+        } else {
+            // Reduce energy over time
+            energy -= 0.05;
 
-        // Move towards the nearest food item
-        ArenaItem nearestFood = findNearestFood(arena);
-        if (nearestFood != null) {
-            double dx = nearestFood.x - this.x;
-            double dy = nearestFood.y - this.y;
-            this.angle = Math.atan2(dy, dx); // Adjust angle to move toward food
+            // Move towards the nearest food item
+            ArenaItem nearestFood = findNearestFood(arena);
+            if (nearestFood != null) {
+                double dx = nearestFood.x - this.x;
+                double dy = nearestFood.y - this.y;
+                this.angle = Math.atan2(dy, dx); // Adjust angle to move toward food
 
-            // Absorb food if overlapping
-            if (this.overlaps(nearestFood)) {
-                arena.removeItem(nearestFood); // Remove the food item
-                energy = Math.min(energy + 20, 100); // Regain energy, capped at 100
+                // Check and absorb food if overlapping
+                if (this.isOverlapping(nearestFood)) {
+                    arena.removeItem(nearestFood); // Remove the food item
+                    energy = Math.min(energy + 20, 100); // Regain energy, capped at 100
+                }
             }
         }
 
-        move();
-        avoidObstacles(arena); // Avoid obstacles in the arena
+        move(); // Continue movement
         stayInArenaBounds(arena); // Ensure robot stays within the arena boundaries
     }
 
@@ -104,5 +109,48 @@ public class WhiskerRobot extends Robot {
             }
         }
         return nearest;
+    }
+
+    /**
+     * Checks if the whisker is touching any other arena item.
+     *
+     * @param arena         The arena containing all items.
+     * @param whiskerOffset The angle offset for the whisker (-Math.PI / 8 for left, Math.PI / 8 for right).
+     * @return True if the whisker is touching any arena item, false otherwise.
+     */
+    private boolean isWhiskerTouching(RobotArena arena, double whiskerOffset) {
+        double precisionStep = 2.0; // Distance between sampled points along the whisker for higher precision
+        for (double length = 0; length <= whiskerLength; length += precisionStep) {
+            // Calculate the position of the current point along the whisker
+            double whiskerX = x + length * Math.cos(angle + whiskerOffset);
+            double whiskerY = y + length * Math.sin(angle + whiskerOffset);
+
+            for (ArenaItem item : arena.getItems()) {
+                if (item == this) continue; // Skip self-collision check
+
+                // Check if the current point on the whisker overlaps with the item
+                double dx = whiskerX - item.x;
+                double dy = whiskerY - item.y;
+                double distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < item.radius + SAFETY_MARGIN) { // Include safety margin
+                    return true; // Collision detected
+                }
+            }
+        }
+        return false; // No collisions detected
+    }
+
+    /**
+     * Checks if the robot is overlapping with the given item.
+     *
+     * @param item The item to check for overlap.
+     * @return True if the robot overlaps with the item, false otherwise.
+     */
+    private boolean isOverlapping(ArenaItem item) {
+        double dx = this.x - item.x;
+        double dy = this.y - item.y;
+        double distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < (this.radius + item.radius);
     }
 }

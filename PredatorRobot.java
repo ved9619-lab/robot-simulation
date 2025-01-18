@@ -19,7 +19,7 @@ public class PredatorRobot extends Robot {
      * @param speed  The speed of the predator robot.
      */
     public PredatorRobot(double x, double y, double radius, double angle, double speed) {
-        super(x, y, radius, angle, speed);
+        super(x, y, radius, angle, speed * 2.0); // Increase speed by 50%
         this.health = 100; // Initial health level
     }
 
@@ -55,6 +55,7 @@ public class PredatorRobot extends Robot {
         }
 
         move();
+        avoidCollisions(arena); // Handle predator collision avoidance
         avoidObstacles(arena); // Handle obstacle avoidance
         stayInArenaBounds(arena); // Ensure predator stays within bounds
     }
@@ -94,5 +95,34 @@ public class PredatorRobot extends Robot {
             }
         }
         return nearest;
+    }
+
+    /**
+     * Avoid collisions with other predators in the arena.
+     *
+     * @param arena The arena containing all items.
+     */
+    private void avoidCollisions(RobotArena arena) {
+        for (ArenaItem item : arena.getItems()) {
+            if (item instanceof PredatorRobot && item != this) {
+                double dx = this.x - item.x;
+                double dy = this.y - item.y;
+                double distance = Math.sqrt(dx * dx + dy * dy);
+
+                // If overlapping, adjust position to avoid collision
+                if (distance < this.radius + item.radius) {
+                    double overlap = (this.radius + item.radius) - distance;
+                    double angleAway = Math.atan2(dy, dx);
+
+                    // Move this predator slightly away
+                    this.x += Math.cos(angleAway) * overlap / 2;
+                    this.y += Math.sin(angleAway) * overlap / 2;
+
+                    // Move the other predator slightly away
+                    item.x -= Math.cos(angleAway) * overlap / 2;
+                    item.y -= Math.sin(angleAway) * overlap / 2;
+                }
+            }
+        }
     }
 }
