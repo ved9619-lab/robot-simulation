@@ -522,14 +522,25 @@ public class RobotSimulation extends Application {
                     data.append(item.getClass().getSimpleName()).append(",")
                             .append(item.x).append(",")
                             .append(item.y).append(",")
-                            .append(item.radius).append("\n");
+                            .append(item.radius);
+
+                    // Include additional attributes for specific types
+                    if (item instanceof BeamSensorRobot) {
+                        BeamSensorRobot bot = (BeamSensorRobot) item;
+                        data.append(",").append(bot.getSensorRange()).append(",").append(bot.getEnergy());
+                    } else if (item instanceof ControllableRobot) {
+                        ControllableRobot bot = (ControllableRobot) item;
+                        data.append(",").append(bot.getSpeed()).append(",").append(bot.getHealth()).append(",").append(bot.getScore());
+                    }
+                    data.append("\n");
                 }
-                Files.write(file.toPath(), data.toString().getBytes()); // Write the configuration to the file
+                Files.write(file.toPath(), data.toString().getBytes()); // Write configuration to file
             } catch (IOException e) {
                 showError("Failed to save configuration."); // Show error if saving fails
             }
         }
     }
+
 
     /**
      * Loads the arena configuration from a file.
@@ -568,14 +579,33 @@ public class RobotSimulation extends Application {
             double radius = Double.parseDouble(parts[3]);
 
             // Add items based on their type
-            if (type.equals("WhiskerRobot")) {
-                arena.addItem(new WhiskerRobot(x, y, radius, Math.PI / 4, 2, 50));
-            } else if (type.equals("Obstacle")) {
-                arena.addItem(new Obstacle(x, y, radius));
-            } else if (type.equals("PredatorRobot")) {
-                arena.addItem(new PredatorRobot(x, y, radius, Math.PI / 4, 1.2));
-            } else if (type.equals("Food")) {
-                arena.addItem(new Food(x, y, radius));
+            switch (type) {
+                case "WhiskerRobot":
+                    arena.addItem(new WhiskerRobot(x, y, radius, Math.PI / 4, 2, 50));
+                    break;
+                case "Obstacle":
+                    arena.addItem(new Obstacle(x, y, radius));
+                    break;
+                case "PredatorRobot":
+                    arena.addItem(new PredatorRobot(x, y, radius, Math.PI / 4, 1.2));
+                    break;
+                case "Food":
+                    arena.addItem(new Food(x, y, radius));
+                    break;
+                case "BeamSensorRobot":
+                    double sensorRange = Double.parseDouble(parts[4]);
+                    double energy = Double.parseDouble(parts[5]);
+                    arena.addItem(new BeamSensorRobot(x, y, radius, Math.PI / 4, 2, sensorRange, energy));
+                    break;
+                case "ControllableRobot":
+                    double speed = Double.parseDouble(parts[4]);
+                    int health = Integer.parseInt(parts[5]);
+                    int score = Integer.parseInt(parts[6]);
+                    ControllableRobot controllableRobot = new ControllableRobot(x, y, radius, speed);
+                    controllableRobot.reduceHealth(100 - health); // Adjust health to match saved value
+                    controllableRobot.increaseScore(score);
+                    arena.addItem(controllableRobot);
+                    break;
             }
         }
     }
