@@ -12,8 +12,12 @@ public class BeamSensorRobot extends Robot {
     // Constants
     private static final double TURN_ANGLE = Math.PI / 4; // 45 degrees
     private static final double DETECTION_ANGLE = Math.PI / 6; // 30 degrees
+
     // Sensor range of the robot (distance the beam can detect objects)
     private double sensorRange; // Range of the beam sensor
+
+    // Energy level of the robot
+    private double energy;
 
     /**
      * Constructs a BeamSensorRobot with specified position, size, and movement attributes.
@@ -23,23 +27,31 @@ public class BeamSensorRobot extends Robot {
      * @param angle       Initial movement angle of the robot (in radians).
      * @param speed       Speed of the robot.
      * @param sensorRange Range of the beam sensor.
+     * @param energy      Initial energy level of the robot.
      */
-
-    public BeamSensorRobot(double x, double y, double radius, double angle, double speed, double sensorRange) {
+    public BeamSensorRobot(double x, double y, double radius, double angle, double speed, double sensorRange, double energy) {
         super(x, y, radius, angle, speed);
         this.sensorRange = sensorRange;
+        this.energy = energy;
     }
 
     /**
      * Updates the robot's position and behavior based on sensor detection.
-     * The robot moves and reacts to detected items such as obstacles, food, or other robots.
+     * If the energy level drops to 0, the robot is removed from the arena.
      *
      * @param arena The RobotArena that contains all items and walls.
      */
-
     @Override
     public void update(RobotArena arena) {
+
+        if (energy <= 0) {
+            arena.removeItem(this); // Remove robot from the arena when energy is depleted
+            return;
+        }
+
         move(); // Move in the current direction
+        energy -= 0.05; // Reduce energy gradually with each update
+
         // Detect items in the robot's path
         ArenaItem detectedItem = detectItemInPath(arena);
         if (detectedItem != null) {
@@ -61,11 +73,12 @@ public class BeamSensorRobot extends Robot {
      */
     private void handleDetectedObstacle() {
         angle += TURN_ANGLE; // Turn away from obstacle, robot, or wall
+        energy -= 0.5; // Turning consumes additional energy
     }
 
     /**
      * Moves the robot toward a detected food item.
-     * If the robot overlaps the food, the food is absorbed (removed from the arena).
+     * If the robot overlaps the food, the food is absorbed (removed from the arena), and energy is replenished.
      * @param food  The detected food item.
      * @param arena The RobotArena that contains all items.
      */
@@ -77,17 +90,35 @@ public class BeamSensorRobot extends Robot {
         // Absorb food if overlapping
         if (this.overlaps(food)) {
             arena.removeItem(food);
+            energy += 10; // Replenish energy upon consuming food
         }
     }
 
     /**
-     * Draws the robot, including its beam sensor and sensor range.
+     * Draws the robot, including its beam sensor, sensor range, and energy level.
      * @param gc The GraphicsContext used for rendering.
      */
-
     @Override
     public void draw(GraphicsContext gc) {
-        super.draw(gc);
+        if (energy <= 0) {
+            return; // Do not draw the robot if it is "dead"
+        }
+
+        // Draw robot body
+        gc.setFill(Color.DARKBLUE);
+        gc.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+
+        // Draw robot border
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(2);
+        gc.strokeOval(x - radius, y - radius, radius * 2, radius * 2);
+
+        // Draw wheels
+        gc.setFill(Color.GRAY);
+        gc.fillOval(x - radius * 0.6, y - radius * 1.2, radius * 0.4, radius * 0.4); // Top wheel
+        gc.fillOval(x + radius * 0.2, y - radius * 1.2, radius * 0.4, radius * 0.4); // Top-right wheel
+        gc.fillOval(x - radius * 0.6, y + radius * 0.8, radius * 0.4, radius * 0.4); // Bottom wheel
+        gc.fillOval(x + radius * 0.2, y + radius * 0.8, radius * 0.4, radius * 0.4); // Bottom-right wheel
 
         // Draw beam sensor
         gc.setStroke(Color.YELLOW);
@@ -102,11 +133,16 @@ public class BeamSensorRobot extends Robot {
         gc.setStroke(Color.LIGHTGRAY);
         gc.setLineWidth(0.5);
         gc.strokeOval(x - sensorRange, y - sensorRange, sensorRange * 2, sensorRange * 2);
+
+        // Draw energy level
+        gc.setFill(Color.GREEN);
+        gc.fillRect(x - radius, y - radius - 10, (energy / 100) * radius * 2, 5);
+        gc.setStroke(Color.BLACK);
+        gc.strokeRect(x - radius, y - radius - 10, radius * 2, 5);
     }
 
     /**
      * Detects the first item in the robot's path within the sensor range.
-     *
      * @param arena The arena to search for items.
      * @return The detected ArenaItem, or null if no item is found.
      */
@@ -155,14 +191,14 @@ public class BeamSensorRobot extends Robot {
 
     /**
      * Checks if a line segment intersects another line segment.
-     * @param x1 Start x of first line
-     * @param y1 Start y of first line
-     * @param x2 End x of first line
-     * @param y2 End y of first line
-     * @param x3 Start x of second line
-     * @param y3 Start y of second line
-     * @param x4 End x of second line
-     * @param y4 End y of second line
+     * @param x1 Start x of the first line.
+     * @param y1 Start y of the first line.
+     * @param x2 End x of the first line.
+     * @param y2 End y of the first line.
+     * @param x3 Start x of the second line.
+     * @param y3 Start y of the second line.
+     * @param x4 End x of the second line.
+     * @param y4 End y of the second line.
      * @return True if the lines intersect, false otherwise.
      */
     private boolean intersectsLine(double x1, double y1, double x2, double y2,
@@ -178,12 +214,21 @@ public class BeamSensorRobot extends Robot {
         return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
     }
 
-    // Getter for sensorRange
+    // Getter and setter for sensorRange
     public double getSensorRange() {
         return sensorRange;
     }
 
     public void setSensorRange(double sensorRange) {
         this.sensorRange = sensorRange;
+    }
+
+    // Getter and setter for energy
+    public double getEnergy() {
+        return energy;
+    }
+
+    public void setEnergy(double energy) {
+        this.energy = energy;
     }
 }

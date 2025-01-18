@@ -228,7 +228,8 @@ public class RobotSimulation extends Application {
         // Add this code in the createToolbar method
         Button addBeamRobotButton = new Button("Add Beam Sensor Robot");
         addBeamRobotButton.setOnAction(e -> addNonOverlappingItem(
-                new BeamSensorRobot(0, 0, 20, Math.random() * 2 * Math.PI, 1.5, 100),
+                new BeamSensorRobot(0, 0, 20, Math.random() * 2 * Math.PI, 1.5, 100, 50),
+
                 canvasWidth, canvasHeight));
 
         toolbar.getChildren().addAll(addBeamRobotButton);
