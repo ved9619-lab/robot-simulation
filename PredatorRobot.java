@@ -68,7 +68,7 @@ public class PredatorRobot extends Robot {
     @Override
     public void draw(GraphicsContext gc) {
         // Draw predator robot body
-        gc.setFill(Color.DARKRED); // Set predator color to dark red for a more menacing look
+        gc.setFill(Color.DARKRED);
         gc.fillOval(x - radius, y - radius, radius * 2, radius * 2);
 
         // Draw predator outline
@@ -76,8 +76,8 @@ public class PredatorRobot extends Robot {
         gc.setLineWidth(2);
         gc.strokeOval(x - radius, y - radius, radius * 2, radius * 2);
 
-        // Draw predator eyes for a "predator" look
-        gc.setFill(Color.YELLOW); // Bright yellow eyes
+        // Draw predator eyes
+        gc.setFill(Color.YELLOW);
         double eyeSize = radius / 4;
         gc.fillOval(x - radius / 2, y - radius / 3, eyeSize, eyeSize); // Left eye
         gc.fillOval(x + radius / 4, y - radius / 3, eyeSize, eyeSize); // Right eye
@@ -91,16 +91,34 @@ public class PredatorRobot extends Robot {
         gc.fillPolygon(new double[]{x + radius / 3, x + fangWidth / 2, x + fangWidth},
                 new double[]{y + radius / 2, y + radius / 2 + fangHeight, y + radius / 2}, 3); // Right fang
 
-        // Draw wheels
-        gc.setFill(Color.BLACK);
-        double wheelRadius = radius / 3;
-        gc.fillOval(x - radius / 1.5, y + radius / 2, wheelRadius, wheelRadius); // Left wheel
-        gc.fillOval(x + radius / 3, y + radius / 2, wheelRadius, wheelRadius); // Right wheel
+        // Draw wheels aligned with movement direction on left and right sides
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(5);
+        double wheelLength = 20; // Length of the wheel
+        double offsetX = Math.cos(angle + Math.PI / 2) * radius; // X-offset for left/right wheels
+        double offsetY = Math.sin(angle + Math.PI / 2) * radius; // Y-offset for left/right wheels
+        double perpendicularX = Math.cos(angle) * wheelLength / 2;
+        double perpendicularY = Math.sin(angle) * wheelLength / 2;
+
+        // Left wheel
+        double wheelXLeftStart = x - offsetX - perpendicularX;
+        double wheelYLeftStart = y - offsetY - perpendicularY;
+        double wheelXLeftEnd = x - offsetX + perpendicularX;
+        double wheelYLeftEnd = y - offsetY + perpendicularY;
+        gc.strokeLine(wheelXLeftStart, wheelYLeftStart, wheelXLeftEnd, wheelYLeftEnd);
+
+        // Right wheel
+        double wheelXRightStart = x + offsetX - perpendicularX;
+        double wheelYRightStart = y + offsetY - perpendicularY;
+        double wheelXRightEnd = x + offsetX + perpendicularX;
+        double wheelYRightEnd = y + offsetY + perpendicularY;
+        gc.strokeLine(wheelXRightStart, wheelYRightStart, wheelXRightEnd, wheelYRightEnd);
 
         // Draw health level below the robot
         gc.setFill(Color.BLACK);
-        gc.fillText(String.format("Health: %.1f", health), x - radius, y + radius + 15);
+        gc.fillText(String.format("Health: %.1f", health), x - radius, y + radius + 20);
     }
+
 
     /**
      * Finds the nearest prey bot in the arena.

@@ -101,8 +101,37 @@ public class WhiskerRobot extends Robot {
      */
     @Override
     public void draw(GraphicsContext gc) {
-        // Draw robot body and wheels
-        super.draw(gc);
+        // Draw robot body
+        gc.setFill(Color.TURQUOISE); // Use a distinct color for WhiskerRobot
+        gc.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+
+        // Draw robot outline
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(2);
+        gc.strokeOval(x - radius, y - radius, radius * 2, radius * 2);
+
+        // Draw wheels aligned with movement direction on left and right sides
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(5);
+        double wheelLength = 20; // Length of the wheel
+        double offsetX = Math.cos(angle + Math.PI / 2) * radius; // X-offset for left/right wheels
+        double offsetY = Math.sin(angle + Math.PI / 2) * radius; // Y-offset for left/right wheels
+        double perpendicularX = Math.cos(angle) * wheelLength / 2;
+        double perpendicularY = Math.sin(angle) * wheelLength / 2;
+
+        // Left wheel
+        double wheelXLeftStart = x - offsetX - perpendicularX;
+        double wheelYLeftStart = y - offsetY - perpendicularY;
+        double wheelXLeftEnd = x - offsetX + perpendicularX;
+        double wheelYLeftEnd = y - offsetY + perpendicularY;
+        gc.strokeLine(wheelXLeftStart, wheelYLeftStart, wheelXLeftEnd, wheelYLeftEnd);
+
+        // Right wheel
+        double wheelXRightStart = x + offsetX - perpendicularX;
+        double wheelYRightStart = y + offsetY - perpendicularY;
+        double wheelXRightEnd = x + offsetX + perpendicularX;
+        double wheelYRightEnd = y + perpendicularY + offsetY;
+        gc.strokeLine(wheelXRightStart, wheelYRightStart, wheelXRightEnd, wheelYRightEnd);
 
         // Draw whiskers
         gc.setStroke(Color.RED); // Set whisker color to red
@@ -116,6 +145,7 @@ public class WhiskerRobot extends Robot {
         gc.setFill(Color.BLACK);
         gc.fillText(String.format("Energy: %.1f", energy), x - radius, y + radius + 10);
     }
+
 
     /**
      * Finds the nearest food item in the arena.
