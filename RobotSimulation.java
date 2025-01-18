@@ -41,6 +41,7 @@ public class RobotSimulation extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        // Set up the primary layout
 
         BorderPane root = new BorderPane();
         Scene scene = new Scene(root); // Initialise the Scene object
@@ -53,7 +54,7 @@ public class RobotSimulation extends Application {
         // Canvas
         Canvas canvas = new Canvas(800, 600);
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        root.setCenter(canvas);
+        root.setCenter(canvas);// Place the menu bar at the top of the window
 
         // Toolbar
         HBox toolbar = createToolbar(canvas.getWidth(), canvas.getHeight(), canvas);
@@ -107,9 +108,12 @@ public class RobotSimulation extends Application {
         primaryStage.setTitle("Robot Simulation");
         primaryStage.show();
     }
-
-
-
+    /**
+     * Creates the menu bar for the application with options for saving, loading, and toggling food spawning.
+     *
+     * @param stage The primary stage, used for file dialog interactions.
+     * @return The created MenuBar object.
+     */
 
     private MenuBar createMenuBar(Stage stage) {
         MenuBar menuBar = new MenuBar();
@@ -154,10 +158,13 @@ public class RobotSimulation extends Application {
 
         resetMenu.getItems().add(resetItem); // Add Reset functionality to its own menu
 
-// Add menus to the menu bar
+    // Add menus to the menu bar
         menuBar.getMenus().addAll(fileMenu, foodMenu, helpMenu, aboutMenu, resetMenu);
         return menuBar;
     }
+    /**
+     * Displays information about the application in a dialog box.
+     */
     private void showAbout() {
         Alert aboutAlert = new Alert(Alert.AlertType.INFORMATION);
         aboutAlert.setTitle("About - Robot Simulation");
@@ -173,6 +180,15 @@ public class RobotSimulation extends Application {
         );
         aboutAlert.showAndWait();
     }
+
+    /**
+     * Creates a toolbar with buttons for user interaction, such as starting, pausing,
+     * and adding different types of robots or obstacles to the arena.
+     * @param canvasWidth  The width of the canvas to ensure items are placed within bounds.
+     * @param canvasHeight The height of the canvas to ensure items are placed within bounds.
+     * @param canvas       The canvas on which robots and other items are drawn.
+     * @return An HBox containing the toolbar buttons.
+     */
 
     private HBox createToolbar(double canvasWidth, double canvasHeight, Canvas canvas) {
         HBox toolbar = new HBox(10);
@@ -234,16 +250,23 @@ public class RobotSimulation extends Application {
                 selectRobotButton, deleteRobotButton);
         return toolbar;
     }
+    /**
+     * Enables robot selection in the arena when the canvas is clicked.
+     * Highlights the closest robot to the click position.
+     * @param canvas The canvas on which the robots are drawn.
+     */
 
     private void enableRobotSelection(Canvas canvas) {
         canvas.setOnMouseClicked(event -> {
+            // Get the mouse click position
+
             double mouseX = event.getX();
             double mouseY = event.getY();
 
             // Find the robot closest to the click position
             selectedRobot = null;
             double minDistance = Double.MAX_VALUE;
-
+            // Iterate through all items in the arena
             for (ArenaItem item : arena.getItems()) {
                 double distance = Math.sqrt(Math.pow(item.x - mouseX, 2) + Math.pow(item.y - mouseY, 2));
                 if (distance < item.radius && distance < minDistance) {
@@ -256,6 +279,13 @@ public class RobotSimulation extends Application {
             updateSelectedRobotInfo();
         });
     }
+    /**
+     * Enables dragging and moving a selected robot on the canvas.
+     * Updates the robot's position based on mouse interactions.
+     *
+     * @param canvas The canvas on which the robots are drawn.
+     */
+
 
     private void enableRobotMovement(Canvas canvas) {
         canvas.setOnMousePressed(event -> {
@@ -287,6 +317,11 @@ public class RobotSimulation extends Application {
             }
         });
     }
+    /**
+     * Draws a highlight around the selected robot to indicate it is selected.
+     *
+     * @param gc The graphics context used for drawing on the canvas.
+     */
 
     private void drawSelectedRobotHighlight(GraphicsContext gc) {
         if (selectedRobot != null) {
@@ -296,6 +331,10 @@ public class RobotSimulation extends Application {
                     selectedRobot.radius * 2, selectedRobot.radius * 2);
         }
     }
+    /**
+     * Updates the information display for the currently selected robot.
+     * Displays the robot's type, position, and radius.
+     */
 
     private void updateSelectedRobotInfo() {
         if (selectedRobot != null) {
@@ -305,6 +344,10 @@ public class RobotSimulation extends Application {
             selectedRobotInfo.setText("Selected Robot: None");
         }
     }
+    /**
+     * Deletes the currently selected robot from the arena.
+     * Updates the display and clears the selection.
+     */
 
     private void deleteSelectedRobot() {
         if (selectedRobot != null) {
@@ -313,6 +356,9 @@ public class RobotSimulation extends Application {
             updateSelectedRobotInfo(); // Update the display after deletion
         }
     }
+    /**
+     * Spawns food items in the arena at random positions, ensuring the maximum limit is not exceeded.
+     */
 
     private void spawnFood() {
         // Count current food items
@@ -323,6 +369,12 @@ public class RobotSimulation extends Application {
             addNonOverlappingItem(new Food(0, 0, 10), arena.getWidth(), arena.getHeight());
         }
     }
+
+    /**
+     * Toggles the automatic spawning of food items in the arena.
+     *
+     * @param toggleFoodItem The menu item that toggles food spawning.
+     */
 
     private void toggleFoodSpawning(MenuItem toggleFoodItem) {
         if (isFoodSpawning) {
@@ -335,6 +387,9 @@ public class RobotSimulation extends Application {
             toggleFoodItem.setText("Disable Food Spawning");
         }
     }
+    /**
+     * Displays a help dialog with instructions on how to use the simulation.
+     */
 
     private void showHelp() {
         Alert helpAlert = new Alert(Alert.AlertType.INFORMATION);
@@ -360,10 +415,13 @@ public class RobotSimulation extends Application {
                         "- Food spawns periodically, and prey bots absorb it to increase speed.\n\n" +
                         "Enjoy the simulation!"
         );
+        // Display the alert and wait for the user to close it
         helpAlert.showAndWait();
     }
 
-
+    /**
+     * Resets the arena to its default state by clearing all items and restarting the simulation.
+     */
 
     private void resetArena() {
         // Stop any ongoing animations or timers
