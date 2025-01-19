@@ -25,7 +25,7 @@ import java.nio.file.Files;
 import java.util.List;
 /**
  * Main class for the Robot Simulation application.
- * This class manages the UI, robot behaviors, and interactions within the arena.
+ * This class manages the UI, robot behaviors, and interaction.
  */
 public class RobotSimulation extends Application {
     private RobotArena arena; // The arena that has all items
@@ -36,6 +36,10 @@ public class RobotSimulation extends Application {
     private Text selectedRobotInfo;// To display info of selected bot
     private ControllableRobot controllableRobot; // Reference to the user-controlled robot
 
+        /**Entry point of the JavaFX application.
+            *
+            * @param primaryStage The primary stage for the application.
+            */
 
     private static final int MAX_FOOD_ITEMS = 10; // Maximum number of food items allowed in the arena
 
@@ -172,7 +176,6 @@ public class RobotSimulation extends Application {
         aboutAlert.setContentText(
                 "Robot Simulation\n" +
                         "Version: 1.0\n" +
-                        "Author: Vedant Pawar\n" +
                         "Student Number: 32001248\n"+
                         "Description:\n" +
                         "This simulation allows users to interact with robots, obstacles, and food in a virtual arena. " +

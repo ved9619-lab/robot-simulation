@@ -3,7 +3,7 @@ package com.example.robotgui;
 import javafx.scene.canvas.GraphicsContext;
 
 /**
- * Abstract base class for all items in the arena.
+ * Abstract base class for all items in the arena.The class from which other classes extend
  */
 public abstract class ArenaItem {
     protected double x, y; // Position

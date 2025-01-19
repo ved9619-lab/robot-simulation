@@ -5,7 +5,7 @@ import javafx.scene.paint.Color;
 
 /**
  * Represents a food item in the arena.
- * Food items are stationary and provide health or score benefits to robots that collect them.
+ * Food items are stationary and provide health/ energy score benefits to robots that collect them.
  */
 public class Food extends ArenaItem {
 

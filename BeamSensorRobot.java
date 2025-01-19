@@ -13,7 +13,7 @@ public class BeamSensorRobot extends Robot {
     private static final double TURN_ANGLE = Math.PI / 4; // 45 degrees
     private static final double DETECTION_ANGLE = Math.PI / 6; // 30 degrees
 
-    // Sensor range of the robot (distance the beam can detect objects)
+  
     private double sensorRange; // Range of the beam sensor
 
     // Energy level of the robot

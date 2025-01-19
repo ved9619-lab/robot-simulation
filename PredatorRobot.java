@@ -4,7 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 /**
- * A predator robot that chases and eats prey bots, increasing in size and slowing down.
+ * A predator robot that chases and eats prey bots, increasing in size and slowing down.With predator eyes and fangs.
  */
 public class PredatorRobot extends Robot {
     private double health; // Health level of the predator bot

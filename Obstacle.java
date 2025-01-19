@@ -35,7 +35,7 @@ public class Obstacle extends ArenaItem {
     }
 
     /**
-     * Draws the obstacle as a triangular shape with a gradient for a 3D effect.
+     * Draws the obstacle as a triangular shape.
      *
      * @param gc The GraphicsContext used for rendering.
      */
